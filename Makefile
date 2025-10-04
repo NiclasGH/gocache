@@ -13,5 +13,8 @@ install:
 fmt:
 	go fmt ./...
 
+test:
+	go test ./...
+
 check:
 	go build -o /dev/null cmd/gocache/main.go
