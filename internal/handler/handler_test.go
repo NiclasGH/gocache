@@ -3,9 +3,11 @@ package handler
 import (
 	"net"
 	"testing"
+
+	"gotest.tools/v3/assert"
 )
 
-func HandlesConnection_respondsWithOk(t *testing.T) {
+func Test_handlesConnection_respondsWithOk(t *testing.T) {
 	// given
 	client, server := net.Pipe()
 	go HandleConnection(server)
@@ -21,11 +23,9 @@ func HandlesConnection_respondsWithOk(t *testing.T) {
 	if err != nil {
 		t.Error("The client was not able to read the handled connection response")
 	}
-	
+
 	res := string(buf[:length])
-	if res != expectedResponse {
-		t.Errorf("Response [%s] didn't match expected [%s]", res, expectedResponse)
-	}
+	assert.Equal(t, expectedResponse, res)
 
 	client.Close()
 	server.Close()

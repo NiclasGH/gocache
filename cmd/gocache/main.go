@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	handler "gocache/internal"
+	"gocache/internal/handler"
 	"net"
 )
 
 func main() {
+	fmt.Println("Listeningon port :6379")
+
 	listener, err := net.Listen("tcp", ":6379")
 	if err != nil {
 		fmt.Println(err)
