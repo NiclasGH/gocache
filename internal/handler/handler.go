@@ -2,26 +2,23 @@ package handler
 
 import (
 	"fmt"
-	"io"
+	"gocache/internal/resp"
 	"net"
-	"os"
 )
 
 func HandleConnection(connection net.Conn) error {
+	// the server allows long lived connections with many commands, until the client closes the connection
 	for {
-		buf := make([]byte, 1024)
-
-		_, err := connection.Read(buf)
+		resp := resp.NewReader(connection)
+		value, err := resp.Read()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println("error reading from client: ", err.Error())
-			os.Exit(1)
+			fmt.Println(err)
+			return err
 		}
 
+		fmt.Println(value)
+
+		// ignore request and send back a PONG
 		connection.Write([]byte("+OK\r\n"))
 	}
-
-	return nil
 }

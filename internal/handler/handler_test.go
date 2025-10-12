@@ -15,7 +15,7 @@ func Test_handlesConnection_respondsWithOk(t *testing.T) {
 	expectedResponse := "+OK\r\n"
 
 	// when
-	client.Write([]byte("PING\r\n"))
+	client.Write([]byte("$4\r\nTira\r\n"))
 
 	// then
 	buf := make([]byte, 1024)
