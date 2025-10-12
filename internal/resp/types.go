@@ -4,15 +4,18 @@ import "strconv"
 
 type Typ struct {
 	RespCode byte
-	Name     string
+	Typ      string
 }
 
 var (
-	ERROR   = Typ{RespCode: '-', Name: "error"}
-	STRING  = Typ{RespCode: '+', Name: "string"}
-	INTEGER = Typ{RespCode: ':', Name: "integer"}
-	BULK    = Typ{RespCode: '$', Name: "bulk"}
-	ARRAY   = Typ{RespCode: '*', Name: "array"}
+	ERROR   = Typ{RespCode: '-', Typ: "error"}
+	STRING  = Typ{RespCode: '+', Typ: "string"}
+	INTEGER = Typ{RespCode: ':', Typ: "integer"}
+	BULK    = Typ{RespCode: '$', Typ: "bulk"}
+	ARRAY   = Typ{RespCode: '*', Typ: "array"}
+
+	// write-only
+	NULL = Typ{RespCode: '$', Typ: "null"}
 )
 
 // This can be improved using union types, which go currently do not support
@@ -26,13 +29,15 @@ type Value struct {
 
 func (v Value) Marshal() []byte {
 	switch v.Typ {
-	case ARRAY.Name:
+	case ARRAY.Typ:
 		return v.marshalArray()
-	case BULK.Name:
+	case BULK.Typ:
 		return v.marshalBulk()
-	case STRING.Name:
+	case STRING.Typ:
 		return v.marshalString()
-	case ERROR.Name:
+	case NULL.Typ:
+		return v.marshallNull()
+	case ERROR.Typ:
 		return v.marshallError()
 	default:
 		return []byte{}
@@ -78,4 +83,8 @@ func (v Value) marshallError() []byte {
 	bytes = append(bytes, '\r', '\n')
 
 	return bytes
+}
+
+func (v Value) marshallNull() []byte {
+	return []byte("$-1\r\n")
 }

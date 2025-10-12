@@ -9,7 +9,7 @@ import (
 func Test_writeBulk(t *testing.T) {
 	// given
 	input := Value{
-		Typ:  BULK.Name,
+		Typ:  BULK.Typ,
 		Bulk: "Niclas",
 	}
 	expected := []byte("$6\r\nNiclas\r\n")
@@ -24,7 +24,7 @@ func Test_writeBulk(t *testing.T) {
 func Test_writeString(t *testing.T) {
 	// given
 	input := Value{
-		Typ: STRING.Name,
+		Typ: STRING.Typ,
 		Str: "OK",
 	}
 	expected := []byte("+OK\r\n")
@@ -39,7 +39,7 @@ func Test_writeString(t *testing.T) {
 func Test_writeError(t *testing.T) {
 	// given
 	input := Value{
-		Typ: ERROR.Name,
+		Typ: ERROR.Typ,
 		Str: "ERROR",
 	}
 	expected := []byte("-ERROR\r\n")
@@ -54,14 +54,14 @@ func Test_writeError(t *testing.T) {
 func Test_writeArray(t *testing.T) {
 	// given
 	input := Value{
-		Typ: ARRAY.Name,
+		Typ: ARRAY.Typ,
 		Array: []Value{
 			{
-				Typ:  BULK.Name,
+				Typ:  BULK.Typ,
 				Bulk: "Tira",
 			},
 			{
-				Typ:  BULK.Name,
+				Typ:  BULK.Typ,
 				Bulk: "Misu",
 			},
 		},
@@ -73,6 +73,20 @@ func Test_writeArray(t *testing.T) {
 
 	// then
 	assert.DeepEqual(t, expected, result)
+}
+
+func Test_writeNull(t *testing.T) {
+	// given
+	input := Value{
+		Typ: "null",
+	}
+	expected := []byte("$-1\r\n")
+
+	// when
+	result := input.Marshal()
+
+	// then
+	assert.DeepEqual(t, result, expected)
 }
 
 func Test_writeUnknown(t *testing.T) {

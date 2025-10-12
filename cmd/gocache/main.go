@@ -15,14 +15,16 @@ func main() {
 		return
 	}
 
-	// Waits until a message is received. Then returns connection
-	connection, err := listener.Accept()
-	if err != nil {
-		fmt.Println(err)
-		return
+	for {
+		// Waits until a message is received. Then returns connection
+		connection, err := listener.Accept()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		defer connection.Close()
+
+		handler.HandleConnection(connection)
 	}
-
-	defer connection.Close()
-
-	handler.HandleConnection(connection)
 }
