@@ -1,6 +1,9 @@
 package resp
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
 type Writer struct {
 	writer io.Writer
@@ -12,6 +15,7 @@ func NewWriter(w io.Writer) *Writer {
 
 func (w *Writer) Write(v Value) error {
 	var bytes = v.Marshal()
+	fmt.Printf("Responding with: %#v", string(bytes[:]))
 
 	_, err := w.writer.Write(bytes)
 	if err != nil {

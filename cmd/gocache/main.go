@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Listeningon port :6379")
+	fmt.Println("Listening on port :6379")
 
 	listener, err := net.Listen("tcp", ":6379")
 	if err != nil {
