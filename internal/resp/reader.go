@@ -33,7 +33,7 @@ func (r *Resp) Read() (Value, error) {
 
 // type parsers
 func (r *Resp) readBulk() (Value, error) {
-	v := Value{Typ:"bulk"}
+	v := Value{Typ: "bulk"}
 
 	len, _, err := r.readInteger()
 	if err != nil {
@@ -50,7 +50,7 @@ func (r *Resp) readBulk() (Value, error) {
 }
 
 func (r *Resp) readArray() (Value, error) {
-	v := Value{Typ:"array"}
+	v := Value{Typ: "array"}
 
 	len, _, err := r.readInteger()
 	if err != nil {

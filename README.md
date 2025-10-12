@@ -7,7 +7,10 @@ The project idea came from [build-your-own-x](https://github.com/codecrafters-io
 Can run as an external service or as an in-memory caching provider. Underneath, like redis, its a simple key-value store.
 
 ## Developing
-- TODO
+It is recommended to enable the githooks to prevent the CI failing after you push.
+```bash
+git config --local core.hooksPath .githooks/
+```
 
 ### Folder structure
 /cmd - main

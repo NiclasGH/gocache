@@ -11,7 +11,7 @@ func Test_readBulk(t *testing.T) {
 	// given
 	input := "$8\r\nTiramisu\r\n"
 	expected := Value{
-		Typ: "bulk",
+		Typ:  "bulk",
 		Bulk: "Tiramisu",
 	}
 
@@ -35,11 +35,11 @@ func Test_readArrayWith2Bulks(t *testing.T) {
 		Typ: "array",
 		Array: []Value{
 			{
-				Typ: "bulk",
+				Typ:  "bulk",
 				Bulk: "Tira",
 			},
 			{
-				Typ: "bulk",
+				Typ:  "bulk",
 				Bulk: "Misu",
 			},
 		},

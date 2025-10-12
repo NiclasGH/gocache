@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+files=$(gofmt -l .)
+
+if [[ -n $files ]]; then
+    echo -e "Please format your project before comitting using:\033[1;36m make fmt \033[0m"
+    echo -e "Unformatted files:\n\033[0;31m$files"
+    exit 1
+fi
+
+make test

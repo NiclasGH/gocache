@@ -8,8 +8,8 @@ import (
 
 func Test_writeBulk(t *testing.T) {
 	// given
-	input := Value { 
-		Typ: BULK.Name,
+	input := Value{
+		Typ:  BULK.Name,
 		Bulk: "Niclas",
 	}
 	expected := []byte("$6\r\nNiclas\r\n")
@@ -23,7 +23,7 @@ func Test_writeBulk(t *testing.T) {
 
 func Test_writeString(t *testing.T) {
 	// given
-	input := Value { 
+	input := Value{
 		Typ: STRING.Name,
 		Str: "OK",
 	}
@@ -38,7 +38,7 @@ func Test_writeString(t *testing.T) {
 
 func Test_writeError(t *testing.T) {
 	// given
-	input := Value { 
+	input := Value{
 		Typ: ERROR.Name,
 		Str: "ERROR",
 	}
@@ -53,15 +53,15 @@ func Test_writeError(t *testing.T) {
 
 func Test_writeArray(t *testing.T) {
 	// given
-	input := Value { 
+	input := Value{
 		Typ: ARRAY.Name,
-		Array: []Value {
+		Array: []Value{
 			{
-				Typ: BULK.Name,
+				Typ:  BULK.Name,
 				Bulk: "Tira",
 			},
 			{
-				Typ: BULK.Name,
+				Typ:  BULK.Name,
 				Bulk: "Misu",
 			},
 		},
@@ -77,7 +77,7 @@ func Test_writeArray(t *testing.T) {
 
 func Test_writeUnknown(t *testing.T) {
 	// given
-	input := Value { 
+	input := Value{
 		Typ: "unknown",
 	}
 

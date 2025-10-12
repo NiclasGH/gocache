@@ -23,6 +23,6 @@ func HandleConnection(connection net.Conn) error {
 		fmt.Println(value)
 
 		writer := resp.NewWriter(connection)
-		writer.Write(resp.Value { Typ: "string", Str: "OK" })
+		writer.Write(resp.Value{Typ: "string", Str: "OK"})
 	}
 }

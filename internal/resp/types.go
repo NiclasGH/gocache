@@ -4,15 +4,15 @@ import "strconv"
 
 type Typ struct {
 	RespCode byte
-	Name string
+	Name     string
 }
 
 var (
-	ERROR   = Typ { RespCode: '-', Name: "error" }
-	STRING  = Typ { RespCode: '+', Name: "string" }
-	INTEGER = Typ { RespCode: ':', Name: "integer" }
-	BULK    = Typ { RespCode: '$', Name: "bulk" }
-	ARRAY   = Typ { RespCode: '*', Name: "array" }
+	ERROR   = Typ{RespCode: '-', Name: "error"}
+	STRING  = Typ{RespCode: '+', Name: "string"}
+	INTEGER = Typ{RespCode: ':', Name: "integer"}
+	BULK    = Typ{RespCode: '$', Name: "bulk"}
+	ARRAY   = Typ{RespCode: '*', Name: "array"}
 )
 
 // This can be improved using union types, which go currently do not support
@@ -79,4 +79,3 @@ func (v Value) marshallError() []byte {
 
 	return bytes
 }
-
