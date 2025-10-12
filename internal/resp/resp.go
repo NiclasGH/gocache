@@ -22,9 +22,9 @@ func (r *Resp) Read() (Value, error) {
 	}
 
 	switch typ {
-	case ARRAY:
+	case ARRAY.RespCode:
 		return r.readArray()
-	case BULK:
+	case BULK.RespCode:
 		return r.readBulk()
 	default:
 		return Value{}, errors.New("Received unknown type: " + string(typ))
