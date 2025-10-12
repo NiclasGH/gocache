@@ -38,7 +38,7 @@ func Set(args []resp.Value) resp.Value {
 }
 
 func Get(args []resp.Value) resp.Value {
-	if len(args) == 1 {
+	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'get' command"}
 	}
 
