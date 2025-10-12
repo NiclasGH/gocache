@@ -3,16 +3,16 @@ package resp
 import (
 	"bufio"
 	"errors"
+	"io"
 	"strconv"
-	"strings"
 )
 
 type Resp struct {
 	reader *bufio.Reader
 }
 
-func NewReader(input string) *Resp {
-	return &Resp{reader: bufio.NewReader(strings.NewReader(input))}
+func NewReader(input io.Reader) *Resp {
+	return &Resp{reader: bufio.NewReader(input)}
 }
 
 func (r *Resp) Read() (Value, error) {

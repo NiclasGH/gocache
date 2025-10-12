@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"strings"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -14,7 +15,7 @@ func Test_readBulk(t *testing.T) {
 		Bulk: "Tiramisu",
 	}
 
-	reader := NewReader(input)
+	reader := NewReader(strings.NewReader(input))
 
 	// when
 	result, err := reader.Read()
@@ -44,7 +45,7 @@ func Test_readArrayWith2Bulks(t *testing.T) {
 		},
 	}
 
-	reader := NewReader(input)
+	reader := NewReader(strings.NewReader(input))
 
 	// when
 	result, err := reader.Read()
