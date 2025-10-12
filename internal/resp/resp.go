@@ -57,19 +57,15 @@ func (r *Resp) readArray() (Value, error) {
 		return v, err
 	}
 
-	array := make([]Value, len)
+	v.Array = make([]Value, len)
 	for i := range len {
 		value, err := r.Read()
 		if err != nil {
 			return Value{}, err
 		}
-		array[i] = value
+		v.Array[i] = value
 	}
 
-
-	v.Array = array
-
-	r.readLine() // consume last linebreak
 	return v, nil
 }
 
