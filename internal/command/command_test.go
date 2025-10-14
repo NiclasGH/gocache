@@ -12,9 +12,13 @@ func Test_ping(t *testing.T) {
 	for k := range storage {
 		delete(storage, k)
 	}
+	expected := resp.Value{Typ: "string", Str: "PONG"}
 
 	// when
-	Ping([]resp.Value{})
+	result := Ping([]resp.Value{})
+
+	// then
+	assert.DeepEqual(t, expected, result)
 }
 
 func Test_pingWithArg(t *testing.T) {
