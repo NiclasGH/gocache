@@ -7,11 +7,12 @@ import (
 )
 
 var Commands = map[string]func([]resp.Value) resp.Value{
-	"PING": ping,
-	"SET":  set,
-	"GET":  get,
-	"HSET": hset,
-	"HGET": hget,
+	"PING":    ping,
+	"SET":     set,
+	"GET":     get,
+	"HSET":    hset,
+	"HGET":    hget,
+	"HGETALL": hgetAll,
 }
 
 var setStorage = map[string]string{}
@@ -96,9 +97,34 @@ func hget(args []resp.Value) resp.Value {
 	hsetStorageMutex.RUnlock()
 
 	if !ok {
-		fmt.Printf("Did not find any value with key %s\n", key)
+		fmt.Printf("Did not find any value with hash %s or key %s\n", hash, key)
 		return resp.Value{Typ: "null"}
 	}
 
 	return resp.Value{Typ: "bulk", Bulk: value}
+}
+
+func hgetAll(args []resp.Value) resp.Value {
+	if len(args) != 1 {
+		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hgetall' command"}
+	}
+
+	hash := args[0].Bulk
+
+	hsetStorageMutex.RLock()
+	value, ok := hsetStorage[hash]
+	hsetStorageMutex.RUnlock()
+
+	if !ok {
+		fmt.Printf("Did not find any value with hash %s\n", hash)
+		return resp.Value{Typ: "null"}
+	}
+
+	values := []resp.Value{}
+	for k, v := range value {
+		values = append(values, resp.Value{Typ: resp.BULK.Typ, Bulk: k})
+		values = append(values, resp.Value{Typ: resp.BULK.Typ, Bulk: v})
+	}
+
+	return resp.Value{Typ: "array", Array: values}
 }
