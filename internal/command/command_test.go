@@ -14,8 +14,14 @@ func Test_ping(t *testing.T) {
 	}
 	expected := resp.Value{Typ: "string", Str: "PONG"}
 
+	ping, ok := Commands["PING"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Ping([]resp.Value{})
+	result := ping([]resp.Value{})
 
 	// then
 	assert.DeepEqual(t, expected, result)
@@ -33,10 +39,16 @@ func Test_pingWithArg(t *testing.T) {
 		},
 	}
 
+	ping, ok := Commands["PING"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	expected := resp.Value{Typ: "string", Str: "Tiramisu"}
 
 	// when
-	result := Ping(args)
+	result := ping(args)
 
 	// then
 	assert.DeepEqual(t, expected, result)
@@ -63,8 +75,14 @@ func Test_set(t *testing.T) {
 		Str: "OK",
 	}
 
+	set, ok := Commands["SET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Set(args)
+	result := set(args)
 
 	// then
 	assert.DeepEqual(t, expected, result)
@@ -84,8 +102,14 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 		},
 	}
 
+	set, ok := Commands["SET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Set(args)
+	result := set(args)
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -110,8 +134,14 @@ func Test_get(t *testing.T) {
 		Bulk: "Misu",
 	}
 
+	get, ok := Commands["GET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Get(args)
+	result := get(args)
 
 	// then
 	assert.DeepEqual(t, expected, result)
@@ -135,8 +165,14 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 		},
 	}
 
+	get, ok := Commands["GET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Get(args)
+	result := get(args)
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -159,8 +195,14 @@ func Test_getNoValueAvailable(t *testing.T) {
 		Typ: "null",
 	}
 
+	get, ok := Commands["GET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
 	// when
-	result := Get(args)
+	result := get(args)
 
 	// then
 	assert.DeepEqual(t, expected, result)

@@ -1,20 +1,21 @@
 package command
 
 import (
+	"fmt"
 	"gocache/internal/resp"
 	"sync"
 )
 
 var Commands = map[string]func([]resp.Value) resp.Value{
-	"PING": Ping,
-	"SET":  Ping,
-	"GET":  Ping,
+	"PING": ping,
+	"SET":  set,
+	"GET":  get,
 }
 
 var storage = map[string]string{}
 var storageMutex = sync.RWMutex{}
 
-func Ping(args []resp.Value) resp.Value {
+func ping(args []resp.Value) resp.Value {
 	if len(args) == 0 {
 		return resp.Value{Typ: "string", Str: "PONG"}
 	}
@@ -22,7 +23,7 @@ func Ping(args []resp.Value) resp.Value {
 	return resp.Value{Typ: resp.STRING.Typ, Str: args[0].Bulk}
 }
 
-func Set(args []resp.Value) resp.Value {
+func set(args []resp.Value) resp.Value {
 	if len(args) != 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'set' command"}
 	}
@@ -37,7 +38,7 @@ func Set(args []resp.Value) resp.Value {
 	return resp.Value{Typ: resp.STRING.Typ, Str: "OK"}
 }
 
-func Get(args []resp.Value) resp.Value {
+func get(args []resp.Value) resp.Value {
 	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'get' command"}
 	}
@@ -49,6 +50,7 @@ func Get(args []resp.Value) resp.Value {
 	storageMutex.RUnlock()
 
 	if !ok {
+		fmt.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
 	}
 
