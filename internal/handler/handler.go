@@ -22,6 +22,7 @@ func HandleConnection(connection net.Conn) error {
 			fmt.Println(err)
 			return err
 		}
+		fmt.Printf("Received the following Value: %v\n", value)
 		writer := resp.NewWriter(connection)
 
 		if err := verifyValueFormat(value); err != nil {
