@@ -9,8 +9,8 @@ import (
 
 func Test_ping(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 	expected := resp.Value{Typ: "string", Str: "PONG"}
 
@@ -29,8 +29,8 @@ func Test_ping(t *testing.T) {
 
 func Test_pingWithArg(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 	args := []resp.Value{
 		{
@@ -56,8 +56,8 @@ func Test_pingWithArg(t *testing.T) {
 
 func Test_set(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 	args := []resp.Value{
 		{
@@ -86,13 +86,19 @@ func Test_set(t *testing.T) {
 
 	// then
 	assert.DeepEqual(t, expected, result)
-	assert.Equal(t, "Misu", storage["Tira"])
+
+	value, ok := setStorage["Tira"]
+	if !ok {
+		t.Error("Set Storage did not contain key 'Tira'")
+		return
+	}
+	assert.Equal(t, "Misu", value)
 }
 
 func Test_setNeedsTwoArgs(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 
 	args := []resp.Value{
@@ -117,10 +123,10 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 
 func Test_get(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
-	storage["Tira"] = "Misu"
+	setStorage["Tira"] = "Misu"
 
 	args := []resp.Value{
 		{
@@ -145,13 +151,19 @@ func Test_get(t *testing.T) {
 
 	// then
 	assert.DeepEqual(t, expected, result)
-	assert.Equal(t, "Misu", storage["Tira"])
+
+	value, ok := setStorage["Tira"]
+	if !ok {
+		t.Error("Set Storage did not contain key 'Tira'")
+		return
+	}
+	assert.Equal(t, "Misu", value)
 }
 
 func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 
 	args := []resp.Value{
@@ -180,8 +192,8 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 
 func Test_getNoValueAvailable(t *testing.T) {
 	// given
-	for k := range storage {
-		delete(storage, k)
+	for k := range setStorage {
+		delete(setStorage, k)
 	}
 
 	args := []resp.Value{
@@ -203,6 +215,182 @@ func Test_getNoValueAvailable(t *testing.T) {
 
 	// when
 	result := get(args)
+
+	// then
+	assert.DeepEqual(t, expected, result)
+}
+
+func Test_hset(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "cute",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "string",
+		Str: "OK",
+	}
+
+	hset, ok := Commands["HSET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hset(args)
+
+	// then
+	assert.DeepEqual(t, expected, result)
+
+	value, ok := hsetStorage["tira"]["misu"]
+	if !ok {
+		t.Error("HSet Storage did not contain hash 'tira' or key 'misu'")
+		return
+	}
+	assert.Equal(t, "cute", value)
+}
+
+func Test_hsetNeedsThreeArgs(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+	}
+
+	hset, ok := Commands["HSET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hset(args)
+
+	// then
+	assert.Equal(t, "error", result.Typ)
+}
+
+func Test_hget(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+
+	hsetStorage["tira"] = map[string]string{}
+	hsetStorage["tira"]["misu"] = "cute"
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+	}
+
+	expected := resp.Value{
+		Typ:  "bulk",
+		Bulk: "cute",
+	}
+
+	hget, ok := Commands["HGET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hget(args)
+
+	// then
+	assert.DeepEqual(t, expected, result)
+
+	value, ok := hsetStorage["tira"]["misu"]
+	if !ok {
+		t.Error("HSet Storage did not contain hash 'tira' or key 'misu'")
+		return
+	}
+	assert.Equal(t, "cute", value)
+}
+
+func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+	}
+
+	hget, ok := Commands["HGET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hget(args)
+
+	// then
+	assert.Equal(t, "error", result.Typ)
+}
+
+func Test_hgetNoValueAvailable(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "null",
+	}
+
+	hget, ok := Commands["HGET"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hget(args)
 
 	// then
 	assert.DeepEqual(t, expected, result)
