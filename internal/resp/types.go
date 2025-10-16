@@ -8,14 +8,15 @@ type Typ struct {
 }
 
 var (
-	ERROR   = Typ{RespCode: '-', Typ: "error"}
-	STRING  = Typ{RespCode: '+', Typ: "string"}
-	INTEGER = Typ{RespCode: ':', Typ: "integer"}
-	BULK    = Typ{RespCode: '$', Typ: "bulk"}
-	ARRAY   = Typ{RespCode: '*', Typ: "array"}
+	// rd/wrt
+	BULK  = Typ{RespCode: '$', Typ: "bulk"}
+	ARRAY = Typ{RespCode: '*', Typ: "array"}
 
-	// write-only
-	NULL = Typ{RespCode: '$', Typ: "null"}
+	// wrt only
+	NULL    = Typ{RespCode: '$', Typ: "null"}
+	INTEGER = Typ{RespCode: ':', Typ: "integer"}
+	STRING  = Typ{RespCode: '+', Typ: "string"}
+	ERROR   = Typ{RespCode: '-', Typ: "error"}
 )
 
 // This can be improved using union types, which go currently do not support
@@ -35,6 +36,8 @@ func (v Value) Marshal() []byte {
 		return v.marshalBulk()
 	case STRING.Typ:
 		return v.marshalString()
+	case INTEGER.Typ:
+		return v.marshalInteger()
 	case NULL.Typ:
 		return v.marshallNull()
 	case ERROR.Typ:
@@ -72,6 +75,14 @@ func (v Value) marshalString() []byte {
 	var bytes []byte
 	bytes = append(bytes, STRING.RespCode)
 	bytes = append(bytes, v.Str...)
+	bytes = append(bytes, '\r', '\n')
+	return bytes
+}
+
+func (v Value) marshalInteger() []byte {
+	var bytes []byte
+	bytes = append(bytes, INTEGER.RespCode)
+	bytes = append(bytes, []byte(strconv.Itoa(v.Num))...)
 	bytes = append(bytes, '\r', '\n')
 	return bytes
 }

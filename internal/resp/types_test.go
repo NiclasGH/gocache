@@ -51,6 +51,21 @@ func Test_writeError(t *testing.T) {
 	assert.DeepEqual(t, result, expected)
 }
 
+func Test_writeInteger(t *testing.T) {
+	// given
+	input := Value{
+		Typ: INTEGER.Typ,
+		Num: 100,
+	}
+	expected := []byte(":100\r\n")
+
+	// when
+	result := input.Marshal()
+
+	// then
+	assert.DeepEqual(t, result, expected)
+}
+
 func Test_writeArray(t *testing.T) {
 	// given
 	input := Value{
