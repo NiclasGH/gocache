@@ -2,16 +2,26 @@ package main
 
 import (
 	"fmt"
+	"gocache/internal/command"
 	"gocache/internal/handler"
 	"gocache/internal/persistence"
+	"gocache/internal/resp"
 	"net"
 	"os"
+	"strings"
 )
 
-func main() {
-	fmt.Println("Listening on port :6379")
+var ready chan struct{}
 
-	listener, err := net.Listen("tcp", ":6379")
+func main() {
+	port, ok := os.LookupEnv("GC_PORT")
+	if !ok {
+		port = "6379"
+	}
+	port = ":" + port
+	fmt.Printf("Listening on port %v\n", port)
+
+	listener, err := net.Listen("tcp", port)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -21,6 +31,10 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
+	}
+
+	if ready != nil {
+		close(ready)
 	}
 
 	for {
@@ -49,6 +63,21 @@ func initializeDatabase() (persistence.Database, error) {
 		return nil, err
 	}
 
-	// aof.Initialize()
+	err = aof.Initialize(func(value resp.Value) {
+		commandName := strings.ToUpper(value.Array[0].Bulk)
+		args := value.Array[1:]
+
+		command, ok := command.Commands[commandName]
+		if !ok {
+			return
+		}
+
+		command(args)
+	})
+	if err != nil {
+		aof.Close()
+		return nil, err
+	}
+
 	return aof, nil
 }

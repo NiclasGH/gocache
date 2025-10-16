@@ -2,6 +2,8 @@ package persistence
 
 import (
 	"bufio"
+	"gocache/internal/resp"
+	"io"
 	"os"
 	"sync"
 	"time"
@@ -24,7 +26,7 @@ func NewAof(path string) (*Aof, error) {
 		reader: bufio.NewReader(file),
 	}
 
-	// continues syncing file
+	// ensuring data integrity, even if the program crashes
 	go func() {
 		for {
 			aof.mutex.Lock()
@@ -36,6 +38,44 @@ func NewAof(path string) (*Aof, error) {
 	}()
 
 	return aof, nil
+}
+
+func (aof *Aof) Initialize(fn func(resp.Value)) error {
+	aof.mutex.Lock()
+	defer aof.mutex.Unlock()
+
+	// move current file buffer to start
+	aof.file.Seek(0, io.SeekStart)
+
+	reader := resp.NewReader(aof.file)
+
+	for {
+		value, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			return err
+		}
+
+		fn(value)
+	}
+
+	return nil
+}
+
+func (aof *Aof) Save(value resp.Value) error {
+	bytes := value.Marshal()
+
+	aof.mutex.Lock()
+	defer aof.mutex.Unlock()
+
+	if _, err := aof.file.Write(bytes); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (aof *Aof) Close() error {

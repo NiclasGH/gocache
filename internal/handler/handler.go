@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func HandleConnection(connection net.Conn, persistence persistence.Database) error {
+func HandleConnection(connection net.Conn, database persistence.Database) error {
 	// the server allows long lived connections with many commands, until the client closes the connection
 	for {
 		reader := resp.NewReader(connection)
@@ -48,7 +48,7 @@ func HandleConnection(connection net.Conn, persistence persistence.Database) err
 
 		result := command(value.Array[1:])
 		if changedDatabase(result, commandName) {
-			// database.Save(value)
+			database.Save(value)
 		}
 
 		writer.Write(result)

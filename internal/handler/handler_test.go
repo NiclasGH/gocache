@@ -134,7 +134,7 @@ type TestDatabase struct {
 	executedCommands []resp.Value
 }
 
-func (db TestDatabase) Initialize() error {
+func (db TestDatabase) Initialize(func(resp.Value)) error {
 	return errors.New("Should never run this unmocked method Initialize()")
 }
 func (db TestDatabase) Close() error {
