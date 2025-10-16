@@ -7,6 +7,27 @@ import (
 	"gotest.tools/v3/assert"
 )
 
+func Test_readBulkMissingLineBreak_succeeds(t *testing.T) {
+	// given
+	input := "$8\r\nTiramisu"
+	expected := Value{
+		Typ:  "bulk",
+		Bulk: "Tiramisu",
+	}
+
+	reader := NewReader(strings.NewReader(input))
+
+	// when
+	result, err := reader.Read()
+
+	// then
+	if err != nil {
+		t.Error("Expected non-failure during parsing. Got an error instead: ", err)
+	}
+
+	assert.DeepEqual(t, &expected, &result)
+}
+
 func Test_readBulk(t *testing.T) {
 	// given
 	input := "$8\r\nTiramisu\r\n"
