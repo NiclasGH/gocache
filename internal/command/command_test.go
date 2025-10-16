@@ -4,7 +4,7 @@ import (
 	"gocache/internal/resp"
 	"testing"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ping(t *testing.T) {
@@ -24,7 +24,7 @@ func Test_ping(t *testing.T) {
 	result := ping([]resp.Value{})
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_pingWithArg(t *testing.T) {
@@ -51,7 +51,7 @@ func Test_pingWithArg(t *testing.T) {
 	result := ping(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_set(t *testing.T) {
@@ -85,7 +85,7 @@ func Test_set(t *testing.T) {
 	result := set(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 
 	value, ok := setStorage["Tira"]
 	if !ok {
@@ -150,7 +150,7 @@ func Test_get(t *testing.T) {
 	result := get(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 
 	value, ok := setStorage["Tira"]
 	if !ok {
@@ -217,7 +217,7 @@ func Test_getNoValueAvailable(t *testing.T) {
 	result := get(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_hset(t *testing.T) {
@@ -255,7 +255,7 @@ func Test_hset(t *testing.T) {
 	result := hset(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 
 	value, ok := hsetStorage["tira"]["misu"]
 	if !ok {
@@ -326,7 +326,7 @@ func Test_hget(t *testing.T) {
 	result := hget(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 
 	value, ok := hsetStorage["tira"]["misu"]
 	if !ok {
@@ -393,5 +393,299 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 	result := hget(args)
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 }
+
+func Test_command_returnsSpecs(t *testing.T) {
+	// given
+	expected := []resp.Value{
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "PING"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -1},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@connection"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "GET"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@read"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+						{Typ: resp.BULK.Typ, Bulk: "@string"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "SET"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 3},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "write"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@write"},
+						{Typ: resp.BULK.Typ, Bulk: "@slow"},
+						{Typ: resp.BULK.Typ, Bulk: "@string"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "HGET"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 3},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@read"},
+						{Typ: resp.BULK.Typ, Bulk: "@hash"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "HSET"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 4},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "write"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 3},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@write"},
+						{Typ: resp.BULK.Typ, Bulk: "@hash"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "HGETALL"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@read"},
+						{Typ: resp.BULK.Typ, Bulk: "@hash"},
+						{Typ: resp.BULK.Typ, Bulk: "@slow"},
+					},
+				},
+			},
+		},
+	}
+
+	commandSpecs, ok := Commands["COMMAND"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := commandSpecs([]resp.Value{})
+
+	// then
+	assert.ElementsMatch(t, result.Array, expected)
+}
+
+func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
+	// given
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "PiNg",
+		},
+	}
+
+	expected := []resp.Value{
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "PING"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -1},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@connection"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+					},
+				},
+			},
+		},
+	}
+
+	commandSpecs, ok := Commands["COMMAND"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := commandSpecs(args)
+
+	// then
+	assert.ElementsMatch(t, result.Array, expected)
+}
+
+// func Test_commandDocs_returnsDocs(t *testing.T) {
+// 	// given
+// 	args := []resp.Value{
+// 		{
+// 			Typ:  resp.BULK.Typ,
+// 			Bulk: "tira",
+// 		},
+// 		{
+// 			Typ:  resp.BULK.Typ,
+// 			Bulk: "misu",
+// 		},
+// 	}
+//
+// 	expected := resp.Value{
+// 		Typ: "null",
+// 	}
+//
+// 	hget, ok := Commands["HGET"]
+// 	if !ok {
+// 		t.Error("Command does not exist")
+// 		return
+// 	}
+//
+// 	// when
+// 	result := hget(args)
+//
+// 	// then
+// 	assert.DeepEqual(t, expected, result)
+// }

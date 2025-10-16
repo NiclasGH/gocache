@@ -19,6 +19,47 @@ var (
 	ERROR   = Typ{RespCode: '-', Typ: "error"}
 )
 
+type CommandSpec struct {
+	Command       string
+	ArgCount      int
+	Flags         []string
+	FirstKey      int
+	LastKey       int
+	Steps         int
+	AclCategories []string
+}
+
+func (spec CommandSpec) Value() Value {
+	flags := make([]Value, len(spec.Flags))
+	for i, v := range spec.Flags {
+		flags[i] = Value{Typ: BULK.Typ, Bulk: v}
+	}
+
+	aclCategories := make([]Value, len(spec.AclCategories))
+	for i, v := range spec.AclCategories {
+		aclCategories[i] = Value{Typ: BULK.Typ, Bulk: v}
+	}
+
+	return Value{
+		Typ: ARRAY.Typ,
+		Array: []Value{
+			{Typ: BULK.Typ, Bulk: spec.Command},
+			{Typ: INTEGER.Typ, Num: spec.ArgCount},
+			{
+				Typ:   ARRAY.Typ,
+				Array: flags,
+			},
+			{Typ: INTEGER.Typ, Num: spec.FirstKey},
+			{Typ: INTEGER.Typ, Num: spec.LastKey},
+			{Typ: INTEGER.Typ, Num: spec.Steps},
+			{
+				Typ:   ARRAY.Typ,
+				Array: aclCategories,
+			},
+		},
+	}
+}
+
 // This can be improved using union types, which go currently do not support
 type Value struct {
 	Typ   string
