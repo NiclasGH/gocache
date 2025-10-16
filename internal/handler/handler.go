@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"gocache/internal/command"
+	"gocache/internal/persistence"
 	"gocache/internal/resp"
 	"io"
 	"net"
 	"strings"
 )
 
-func HandleConnection(connection net.Conn) error {
+func HandleConnection(connection net.Conn, persistence persistence.Database) error {
 	// the server allows long lived connections with many commands, until the client closes the connection
 	for {
 		reader := resp.NewReader(connection)
@@ -27,25 +28,28 @@ func HandleConnection(connection net.Conn) error {
 
 		if err := verifyValueFormat(value); err != nil {
 			fmt.Println(err)
-			writer.Write(resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()})
+			writer.Write(errorValue(err))
 			continue
 		}
 
 		commandName, err := retrieveCommandName(value)
 		if err != nil {
 			fmt.Println(err)
-			writer.Write(resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()})
+			writer.Write(errorValue(err))
 			continue
 		}
 
 		command, err := retrieveCommand(commandName)
 		if err != nil {
 			fmt.Println(err)
-			writer.Write(resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()})
+			writer.Write(errorValue(err))
 			continue
 		}
 
 		result := command(value.Array[1:])
+		if changedDatabase(result, commandName) {
+			// database.Save(value)
+		}
 
 		writer.Write(result)
 	}
@@ -74,4 +78,12 @@ func retrieveCommand(name string) (func([]resp.Value) resp.Value, error) {
 	}
 
 	return command, nil
+}
+
+func changedDatabase(result resp.Value, commandName string) bool {
+	return result.Typ != resp.ERROR.Typ && (commandName == command.SET || commandName == command.HSET)
+}
+
+func errorValue(err error) resp.Value {
+	return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
 }

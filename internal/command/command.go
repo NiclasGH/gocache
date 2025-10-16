@@ -6,13 +6,22 @@ import (
 	"sync"
 )
 
+const (
+	PING    = "PING"
+	SET     = "SET"
+	GET     = "GET"
+	HSET    = "HSET"
+	HGET    = "HGET"
+	HGETALL = "HGETALL"
+)
+
 var Commands = map[string]func([]resp.Value) resp.Value{
-	"PING":    ping,
-	"SET":     set,
-	"GET":     get,
-	"HSET":    hset,
-	"HGET":    hget,
-	"HGETALL": hgetAll,
+	PING:    ping,
+	SET:     set,
+	GET:     get,
+	HSET:    hset,
+	HGET:    hget,
+	HGETALL: hgetAll,
 }
 
 var setStorage = map[string]string{}

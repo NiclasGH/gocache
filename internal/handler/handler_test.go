@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/pkg/errors"
 	"gotest.tools/v3/assert"
 )
 
@@ -15,7 +16,9 @@ func Test_handlesConnection_noArray_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	go HandleConnection(server)
+	testDb := TestDatabase{[]resp.Value{}}
+
+	go HandleConnection(server, testDb)
 
 	// when
 	client.Write([]byte("$4\r\nTira\r\n"))
@@ -44,7 +47,9 @@ func Test_handlesConnection_noBulkInArray_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	go HandleConnection(server)
+	testDb := TestDatabase{[]resp.Value{}}
+
+	go HandleConnection(server, testDb)
 
 	// when
 	client.Write([]byte("*1\r\n*1\r\n$4\r\nTira\r\n"))
@@ -73,7 +78,9 @@ func Test_handlesConnection_unknownCommand_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	go HandleConnection(server)
+	testDb := TestDatabase{[]resp.Value{}}
+
+	go HandleConnection(server, testDb)
 
 	// when
 	client.Write([]byte("*1\r\n$7\r\nUNKNOWN\r\n"))
@@ -102,7 +109,9 @@ func Test_handlesConnection_ping(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	go HandleConnection(server)
+	testDb := TestDatabase{[]resp.Value{}}
+
+	go HandleConnection(server, testDb)
 
 	expectedResponse := "+PONG\r\n"
 
@@ -118,4 +127,20 @@ func Test_handlesConnection_ping(t *testing.T) {
 	res := string(buf[:length])
 
 	assert.Equal(t, expectedResponse, res)
+}
+
+// Could be replaced with actual mocks
+type TestDatabase struct {
+	executedCommands []resp.Value
+}
+
+func (db TestDatabase) Initialize() error {
+	return errors.New("Should never run this unmocked method Initialize()")
+}
+func (db TestDatabase) Close() error {
+	return errors.New("Should never run this unmocked method Close()")
+}
+func (db TestDatabase) Save(value resp.Value) error {
+	db.executedCommands = append(db.executedCommands, value)
+	return nil
 }
