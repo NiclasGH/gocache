@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"gocache/internal/command"
 	"gocache/internal/handler"
 	"gocache/internal/persistence"
 	"gocache/internal/resp"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -19,17 +19,17 @@ func main() {
 		port = "6379"
 	}
 	port = ":" + port
-	fmt.Printf("Listening on port %v\n", port)
+	log.Printf("Listening on port %v\n", port)
 
 	listener, err := net.Listen("tcp", port)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
 	database, err := initializeDatabase()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
@@ -41,7 +41,7 @@ func main() {
 		// Waits until a message is received. Then returns connection
 		connection, err := listener.Accept()
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 

@@ -1,8 +1,8 @@
 package command
 
 import (
-	"fmt"
 	"gocache/internal/resp"
+	"log"
 	"sync"
 )
 
@@ -67,7 +67,7 @@ func get(args []resp.Value) resp.Value {
 	setStorageMutex.RUnlock()
 
 	if !ok {
-		fmt.Printf("Did not find any value with key %s\n", key)
+		log.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
 	}
 
@@ -106,7 +106,7 @@ func hget(args []resp.Value) resp.Value {
 	hsetStorageMutex.RUnlock()
 
 	if !ok {
-		fmt.Printf("Did not find any value with hash %s or key %s\n", hash, key)
+		log.Printf("Did not find any value with hash %s or key %s\n", hash, key)
 		return resp.Value{Typ: "null"}
 	}
 
@@ -125,7 +125,7 @@ func hgetAll(args []resp.Value) resp.Value {
 	hsetStorageMutex.RUnlock()
 
 	if !ok {
-		fmt.Printf("Did not find any value with hash %s\n", hash)
+		log.Printf("Did not find any value with hash %s\n", hash)
 		return resp.Value{Typ: "null"}
 	}
 

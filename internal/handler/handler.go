@@ -2,11 +2,11 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"gocache/internal/command"
 	"gocache/internal/persistence"
 	"gocache/internal/resp"
 	"io"
+	"log"
 	"net"
 	"strings"
 )
@@ -20,28 +20,28 @@ func HandleConnection(connection net.Conn, database persistence.Database) error 
 			if err == io.EOF {
 				return nil
 			}
-			fmt.Println(err)
+			log.Println(err)
 			return err
 		}
-		fmt.Printf("Received the following Value: %v\n", value)
+		log.Printf("Received the following Value: %v\n", value)
 		writer := resp.NewWriter(connection)
 
 		if err := verifyValueFormat(value); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			writer.Write(errorValue(err))
 			continue
 		}
 
 		commandName, err := retrieveCommandName(value)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			writer.Write(errorValue(err))
 			continue
 		}
 
 		command, err := retrieveCommand(commandName)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			writer.Write(errorValue(err))
 			continue
 		}
