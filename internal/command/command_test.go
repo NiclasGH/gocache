@@ -498,6 +498,37 @@ func Test_command_returnsSpecs(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "DEL"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -2},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "write"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@write"},
+						{Typ: resp.BULK.Typ, Bulk: "@slow"},
+						{Typ: resp.BULK.Typ, Bulk: "@keyspace"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
 				{Typ: resp.BULK.Typ, Bulk: "HGET"},
 				// 2. arg count
 				{Typ: resp.INTEGER.Typ, Num: 3},
@@ -788,6 +819,26 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 
 				{Typ: resp.BULK.Typ, Bulk: "complexity"},
 				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "DEL",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Removes the specified keys."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "keyspace"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1) - O(N)"},
 			},
 		},
 		{
