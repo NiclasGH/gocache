@@ -819,6 +819,38 @@ func Test_command_returnsSpecs(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "INCR"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "write"},
+						{Typ: resp.BULK.Typ, Bulk: "fast"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@write"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+						{Typ: resp.BULK.Typ, Bulk: "@string"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
 				{Typ: resp.BULK.Typ, Bulk: "HGET"},
 				// 2. arg count
 				{Typ: resp.INTEGER.Typ, Num: 3},
@@ -1160,6 +1192,26 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 
 				{Typ: resp.BULK.Typ, Bulk: "complexity"},
 				{Typ: resp.BULK.Typ, Bulk: "O(1) - O(N)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "INCR",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Increments the number stored at key by one."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "string"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
 			},
 		},
 		{

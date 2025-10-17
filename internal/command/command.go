@@ -324,6 +324,15 @@ func commandSpecs() []commandSpec {
 			aclCategories: []string{"@write", "@slow", "@keyspace"},
 		},
 		{
+			command:       "INCR",
+			argCount:      2,
+			flags:         []string{"write", "fast"},
+			firstKey:      1,
+			lastKey:       1,
+			steps:         1,
+			aclCategories: []string{"@write", "@fast", "@string"},
+		},
+		{
 			command:       "HGET",
 			argCount:      3,
 			flags:         []string{"readonly", "fast"},
@@ -409,6 +418,13 @@ func commandDocs() []commandDoc {
 			since:      "1.0.0",
 			group:      "keyspace",
 			complexity: "O(1) - O(N)",
+		},
+		{
+			command:    "INCR",
+			summary:    "Increments the number stored at key by one.",
+			since:      "1.0.0",
+			group:      "string",
+			complexity: "O(1)",
 		},
 		{
 			command:    "HGET",
