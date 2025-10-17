@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"gocache/internal/resp"
 	"log"
 	"strings"
@@ -180,84 +181,176 @@ func hgetAll(args []resp.Value) resp.Value {
 // / COMMAND {command} -> Same as Command but filtered to the command
 // / COMMAND DOCS -> Docs about the commands. may include: summary, since redis version, functional group, complexity, doc_flags, arguments. We only use summary, group and complexity
 func command(args []resp.Value) resp.Value {
-	subCommand := ""
+	commandFilter := ""
 	if len(args) >= 1 {
-		subCommand = strings.ToUpper(args[0].Bulk)
+		commandFilter = strings.ToUpper(args[0].Bulk)
 	}
 
-	if subCommand == "DOCS" {
-		return commandDocs()
-	}
+	var result []resp.Value
 
-	specs := commandSpecs()
-	result := make([]resp.Value, 0, len(specs))
-	for _, v := range specs {
-		if subCommand == "" || v.Command == subCommand {
-			result = append(result, v.Value())
+	if commandFilter == "DOCS" {
+		docs := commandDocs()
+
+		if len(args) >= 2 {
+			commandFilter = strings.ToUpper(args[1].Bulk)
+		} else {
+			commandFilter = ""
 		}
+
+		fmt.Printf("CommandFilter is: %s\n", commandFilter)
+		result = filterAndConvert(docs, commandFilter)
+	} else {
+		specs := commandSpecs()
+		result = filterAndConvert(specs, commandFilter)
 	}
+
 	return resp.Value{Typ: resp.ARRAY.Typ, Array: result}
 }
 
-func commandSpecs() []resp.CommandSpec {
-	return []resp.CommandSpec{
+func filterAndConvert[T intoValue](items []T, filter string) []resp.Value {
+	result := make([]resp.Value, 0, len(items))
+	for _, item := range items {
+		if filter == "" || item.getCommand() == filter {
+			result = append(result, item.values()...)
+		}
+	}
+	return result
+}
+
+func commandSpecs() []commandSpec {
+	return []commandSpec{
 		{
-			Command:       "PING",
-			ArgCount:      -1,
-			Flags:         []string{"readonly", "fast"},
-			FirstKey:      1,
-			LastKey:       1,
-			Steps:         1,
-			AclCategories: []string{"@connection", "@fast"},
+			command:       "PING",
+			argCount:      -1,
+			flags:         []string{"readonly", "fast"},
+			firstKey:      1,
+			lastKey:       1,
+			steps:         1,
+			aclCategories: []string{"@connection", "@fast"},
 		},
 		{
-			Command:       "GET",
-			ArgCount:      2,
-			Flags:         []string{"readonly", "fast"},
-			FirstKey:      1,
-			LastKey:       1,
-			Steps:         1,
-			AclCategories: []string{"@read", "@fast", "@string"},
+			command:       "GET",
+			argCount:      2,
+			flags:         []string{"readonly", "fast"},
+			firstKey:      1,
+			lastKey:       1,
+			steps:         1,
+			aclCategories: []string{"@read", "@fast", "@string"},
 		},
 		{
-			Command:       "SET",
-			ArgCount:      3,
-			Flags:         []string{"write", "fast"},
-			FirstKey:      1,
-			LastKey:       2,
-			Steps:         1,
-			AclCategories: []string{"@write", "@slow", "@string"},
+			command:       "SET",
+			argCount:      3,
+			flags:         []string{"write", "fast"},
+			firstKey:      1,
+			lastKey:       2,
+			steps:         1,
+			aclCategories: []string{"@write", "@slow", "@string"},
 		},
 		{
-			Command:       "HGET",
-			ArgCount:      3,
-			Flags:         []string{"readonly", "fast"},
-			FirstKey:      1,
-			LastKey:       2,
-			Steps:         1,
-			AclCategories: []string{"@read", "@hash", "@fast"},
+			command:       "HGET",
+			argCount:      3,
+			flags:         []string{"readonly", "fast"},
+			firstKey:      1,
+			lastKey:       2,
+			steps:         1,
+			aclCategories: []string{"@read", "@hash", "@fast"},
 		},
 		{
-			Command:       "HSET",
-			ArgCount:      4,
-			Flags:         []string{"write", "fast"},
-			FirstKey:      1,
-			LastKey:       3,
-			Steps:         1,
-			AclCategories: []string{"@write", "@hash", "@fast"},
+			command:       "HSET",
+			argCount:      4,
+			flags:         []string{"write", "fast"},
+			firstKey:      1,
+			lastKey:       3,
+			steps:         1,
+			aclCategories: []string{"@write", "@hash", "@fast"},
 		},
 		{
-			Command:       "HGETALL",
-			ArgCount:      2,
-			Flags:         []string{"readonly"},
-			FirstKey:      1,
-			LastKey:       1,
-			Steps:         1,
-			AclCategories: []string{"@read", "@hash", "@slow"},
+			command:       "HGETALL",
+			argCount:      2,
+			flags:         []string{"readonly"},
+			firstKey:      1,
+			lastKey:       1,
+			steps:         1,
+			aclCategories: []string{"@read", "@hash", "@slow"},
+		},
+		{
+			command:       "COMMAND",
+			argCount:      -1,
+			flags:         []string{"readonly"},
+			firstKey:      1,
+			lastKey:       1,
+			steps:         1,
+			aclCategories: []string{"@connection", "@slow"},
+		},
+		{
+			command:       "COMMAND DOCS",
+			argCount:      -2,
+			flags:         []string{"readonly"},
+			firstKey:      2,
+			lastKey:       2,
+			steps:         1,
+			aclCategories: []string{"@connection", "@slow"},
 		},
 	}
 }
 
-func commandDocs() resp.Value {
-	return resp.Value{Typ: "error", Str: "UNIMPLEMENTED"}
+func commandDocs() []commandDoc {
+	return []commandDoc{
+		{
+			command:    "PING",
+			summary:    "Returns PONG if no argument is provided, otherwise return a copy of the argument as a bulk.",
+			since:      "1.0.0",
+			group:      "connection",
+			complexity: "O(1)",
+		},
+		{
+			command:    "GET",
+			summary:    "Get the value of key.",
+			since:      "1.0.0",
+			group:      "string",
+			complexity: "O(1)",
+		},
+		{
+			command:    "SET",
+			summary:    "Set key to hold the string value.",
+			since:      "1.0.0",
+			group:      "string",
+			complexity: "O(1)",
+		},
+		{
+			command:    "HGET",
+			summary:    "Returns the value associated with field in the hash stored at key.",
+			since:      "2.0.0",
+			group:      "hash",
+			complexity: "O(1)",
+		},
+		{
+			command:    "HSET",
+			summary:    "Sets the specified fields to their respective values in the hash stored at key.",
+			since:      "2.0.0",
+			group:      "hash",
+			complexity: "O(1)",
+		},
+		{
+			command:    "HGETALL",
+			summary:    "Returns all fields and values of the hash stored at key.",
+			since:      "2.0.0",
+			group:      "hash",
+			complexity: "O(N)",
+		},
+		{
+			command:    "COMMAND",
+			summary:    "Return an array with details about every Redis command.",
+			since:      "2.8.13",
+			group:      "connection",
+			complexity: "O(N)",
+		},
+		{
+			command:    "COMMAND DOCS",
+			summary:    "Return documentary information about commands.",
+			since:      "7.0.0",
+			group:      "connection",
+			complexity: "O(N)",
+		},
+	}
 }

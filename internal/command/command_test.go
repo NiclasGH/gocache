@@ -589,6 +589,66 @@ func Test_command_returnsSpecs(t *testing.T) {
 				},
 			},
 		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "COMMAND"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -1},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@connection"},
+						{Typ: resp.BULK.Typ, Bulk: "@slow"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "COMMAND DOCS"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -2},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "readonly"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@connection"},
+						{Typ: resp.BULK.Typ, Bulk: "@slow"},
+					},
+				},
+			},
+		},
 	}
 
 	commandSpecs, ok := Commands["COMMAND"]
@@ -660,32 +720,233 @@ func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
 	assert.ElementsMatch(t, result.Array, expected)
 }
 
-// func Test_commandDocs_returnsDocs(t *testing.T) {
-// 	// given
-// 	args := []resp.Value{
-// 		{
-// 			Typ:  resp.BULK.Typ,
-// 			Bulk: "tira",
-// 		},
-// 		{
-// 			Typ:  resp.BULK.Typ,
-// 			Bulk: "misu",
-// 		},
-// 	}
-//
-// 	expected := resp.Value{
-// 		Typ: "null",
-// 	}
-//
-// 	hget, ok := Commands["HGET"]
-// 	if !ok {
-// 		t.Error("Command does not exist")
-// 		return
-// 	}
-//
-// 	// when
-// 	result := hget(args)
-//
-// 	// then
-// 	assert.DeepEqual(t, expected, result)
-// }
+func Test_commandDocs_returnsDocs(t *testing.T) {
+	// given
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "DOCS",
+		},
+	}
+
+	expected := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "PING",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Returns PONG if no argument is provided, otherwise return a copy of the argument as a bulk."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "connection"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "GET",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Get the value of key."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "string"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "SET",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Set key to hold the string value."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "string"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "HGET",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Returns the value associated with field in the hash stored at key."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "2.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "hash"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "HSET",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Sets the specified fields to their respective values in the hash stored at key."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "2.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "hash"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "HGETALL",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Returns all fields and values of the hash stored at key."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "2.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "hash"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(N)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "COMMAND",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Return an array with details about every Redis command."},
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "2.8.13"},
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "connection"},
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(N)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "COMMAND DOCS",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Return documentary information about commands."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "7.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "connection"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(N)"},
+			},
+		},
+	}
+
+	commandSpecs, ok := Commands["COMMAND"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := commandSpecs(args)
+
+	// then
+	assert.Equal(t, result.Array, expected)
+}
+
+func Test_commandDocs_withFilter_caseInsensitive_returnsDocsOfFilter(t *testing.T) {
+	// given
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "DOCS",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "PiNg",
+		},
+	}
+
+	expected := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "PING",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Returns PONG if no argument is provided, otherwise return a copy of the argument as a bulk."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "1.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "connection"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+	}
+
+	commandSpecs, ok := Commands["COMMAND"]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := commandSpecs(args)
+
+	// then
+	assert.Equal(t, result.Array, expected)
+}
