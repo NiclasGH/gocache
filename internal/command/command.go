@@ -28,6 +28,7 @@ var Commands = map[string]Command{
 	GET:     get,
 	HSET:    hset,
 	HGET:    hget,
+	HDEL:    hdel,
 	HGETALL: hgetAll,
 	COMMAND: command,
 }
@@ -83,26 +84,19 @@ func del(args []resp.Value) resp.Value {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'del' command"}
 	}
 
-	amountDeleted := 0
+	setStorageMutex.Lock()
+	defer setStorageMutex.Unlock()
 
+	amountDeleted := 0
 	for _, key := range args {
 		if key.Typ != resp.BULK.Typ {
 			continue
 		}
 
-		setStorageMutex.RLock()
-		_, ok := setStorage[key.Bulk]
-		setStorageMutex.RUnlock()
-
-		if !ok {
-			continue
+		if _, ok := setStorage[key.Bulk]; ok {
+			delete(setStorage, key.Bulk)
+			amountDeleted += 1
 		}
-
-		setStorageMutex.Lock()
-		delete(setStorage, key.Bulk)
-		setStorageMutex.Unlock()
-
-		amountDeleted += 1
 	}
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
@@ -179,6 +173,44 @@ func hget(args []resp.Value) resp.Value {
 	}
 
 	return resp.Value{Typ: "bulk", Bulk: value}
+}
+
+// / Deletes the specified fields inside a hash
+// / HDEL {hash} {key1} [{key2}...]
+// / Example:
+// / Req: HDEL tira misu
+// / Res: (integer) 1
+func hdel(args []resp.Value) resp.Value {
+	if len(args) < 2 {
+		return resp.Value{Typ: resp.ERROR.Typ, Str: "ERR wrong number of arguments for 'hdel' command"}
+	}
+
+	hashKey := args[0].Bulk
+	hsetStorageMutex.Lock()
+	defer hsetStorageMutex.Unlock()
+
+	hash, ok := hsetStorage[hashKey]
+	if !ok {
+		return resp.Value{Typ: resp.INTEGER.Typ, Num: 0}
+	}
+
+	amountDeleted := 0
+
+	for _, key := range args[1:] {
+		if key.Typ != resp.BULK.Typ {
+			continue
+		}
+		if _, ok := hash[key.Bulk]; ok {
+			delete(hash, key.Bulk)
+			amountDeleted++
+		}
+	}
+
+	if len(hash) == 0 {
+		delete(hsetStorage, hashKey)
+	}
+
+	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
 
 // / Gets all values of a specific hash

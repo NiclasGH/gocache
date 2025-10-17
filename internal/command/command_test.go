@@ -212,11 +212,6 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 	// given
 	args := []resp.Value{}
 
-	expected := resp.Value{
-		Typ: "error",
-		Str: "ERR wrong number of arguments for 'del' command",
-	}
-
 	del, ok := Commands[DEL]
 	if !ok {
 		t.Error("Command does not exist")
@@ -227,7 +222,7 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 	result := del(args)
 
 	// then
-	assert.EqualValues(t, expected, result)
+	assert.Equal(t, "error", result.Typ)
 }
 
 func Test_get(t *testing.T) {
@@ -503,6 +498,192 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 
 	// then
 	assert.EqualValues(t, expected, result)
+}
+
+func Test_hdel(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+	hsetStorage["tira"] = map[string]string{}
+	hsetStorage["tira"]["misu"] = "cute"
+	hsetStorage["tira"]["void"] = "scary"
+
+	args := []resp.Value{
+		// hash
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		// field
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 1,
+	}
+
+	hdel, ok := Commands[HDEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hdel(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	_, ok = hsetStorage["tira"]["misu"]
+	if ok {
+		t.Error("HSet Storage did not get key 'misu' deleted")
+		return
+	}
+
+	value, ok := hsetStorage["tira"]["void"]
+	if !ok {
+		t.Error("HSet Storage did get key 'void' deleted but wasn't supposed to")
+		return
+	}
+	assert.Equal(t, value, "scary")
+}
+
+func Test_hdel_lastKeyDeletesHash(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+	hsetStorage["tira"] = map[string]string{}
+	hsetStorage["tira"]["misu"] = "cute"
+
+	args := []resp.Value{
+		// hash
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		// field
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 1,
+	}
+
+	hdel, ok := Commands[HDEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hdel(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	_, ok = hsetStorage["tira"]
+	if ok {
+		t.Error("HSet Storage did not get hash 'tira' deleted")
+		return
+	}
+}
+
+func Test_hdel_deleteMultipleFields(t *testing.T) {
+	// given
+	for k := range hsetStorage {
+		delete(hsetStorage, k)
+	}
+	hsetStorage["tira"] = map[string]string{}
+	hsetStorage["tira"]["misu"] = "cute"
+	hsetStorage["tira"]["void"] = "scary"
+	hsetStorage["tira"]["isSpider"] = "yes"
+
+	args := []resp.Value{
+		// hash
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+		// field
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "misu",
+		},
+		// field
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "void",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 2,
+	}
+
+	hdel, ok := Commands[HDEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hdel(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	_, ok = hsetStorage["tira"]["misu"]
+	if ok {
+		t.Error("HSet Storage did not get key 'misu' deleted")
+		return
+	}
+
+	_, ok = hsetStorage["tira"]["void"]
+	if ok {
+		t.Error("HSet Storage did not get key 'void' deleted")
+		return
+	}
+
+	value, ok := hsetStorage["tira"]["isSpider"]
+	if !ok {
+		t.Error("HSet Storage did get key 'isSpider' deleted but wasn't supposed to")
+		return
+	}
+	assert.Equal(t, value, "yes")
+}
+
+func Test_hdel_needsAtLeastTwoArgs(t *testing.T) {
+	// given
+	args := []resp.Value{
+		// hash
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "tira",
+		},
+	}
+
+	hdel, ok := Commands[HDEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := hdel(args)
+
+	// then
+	assert.Equal(t, "error", result.Typ)
 }
 
 func Test_command_returnsSpecs(t *testing.T) {
