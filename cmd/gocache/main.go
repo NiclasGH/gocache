@@ -47,7 +47,10 @@ func main() {
 
 		go func() {
 			defer connection.Close()
-			handler.HandleConnection(connection, database)
+			err := handler.HandleConnection(connection, database)
+			if err != nil {
+				log.Println(err)
+			}
 		}()
 	}
 }

@@ -1,0 +1,64 @@
+name: build.yml
+on:
+  push:
+
+jobs:
+  tests:
+      name: run tests
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v5
+
+        - name: Set up Go
+          uses: actions/setup-go@v5
+          with:
+            go-version-file: go.mod
+            cache: true
+
+        - name: Cache build
+          uses: actions/cache@v4
+          with:
+            path: ~/.cache/go-build
+            key: go-build-${{ hashFiles('**/go.sum') }}
+
+        - name: Download dependencies
+          run: go mod download
+
+        - name: Run tests
+          run: go test -coverprofile="coverage.out" -covermode=atomic ./...
+
+        - name: Upload coverage artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: coverage
+            path: coverage.out
+
+  fmt:
+      name: check fmt
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v5
+
+        - name: Set up Go
+          uses: actions/setup-go@v5
+          with:
+            go-version-file: go.mod
+            cache: true
+
+        - name: Cache build
+          uses: actions/cache@v4
+          with:
+            path: ~/.cache/go-build
+            key: go-build-${{ hashFiles('**/go.sum') }}
+
+        - name: Check formatting tests
+          run: |
+            files=$(gofmt -l .)
+
+            if [[ -n $files ]]; then
+                echo -e "Please format your project before comitting using:\033[1;36m make fmt \033[0m"
+                echo -e "Unformatted files:\n\033[0;31m$files"
+                exit 1
+            fi

@@ -20,7 +20,6 @@ func HandleConnection(connection net.Conn, database persistence.Database) error 
 			if err == io.EOF {
 				return nil
 			}
-			log.Println(err)
 			return err
 		}
 		log.Printf("Received the following Value: %v\n", value)
