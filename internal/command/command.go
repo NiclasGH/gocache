@@ -9,10 +9,12 @@ import (
 
 const (
 	PING    = "PING"
+	DEL     = "DEL"
 	SET     = "SET"
 	GET     = "GET"
 	HSET    = "HSET"
 	HGET    = "HGET"
+	HDEL    = "HDEL"
 	HGETALL = "HGETALL"
 	COMMAND = "COMMAND"
 )
@@ -22,6 +24,7 @@ type Command = func([]resp.Value) resp.Value
 var Commands = map[string]Command{
 	PING:    ping,
 	SET:     set,
+	DEL:     del,
 	GET:     get,
 	HSET:    hset,
 	HGET:    hget,
@@ -68,6 +71,41 @@ func set(args []resp.Value) resp.Value {
 	setStorageMutex.Unlock()
 
 	return okResponse
+}
+
+// / Deletes values at specified keys
+// / DEL {key1} [{key2}...]
+// / Example:
+// / Req: DEL tira
+// / Res: (integer) 1
+func del(args []resp.Value) resp.Value {
+	if len(args) == 0 {
+		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'del' command"}
+	}
+
+	amountDeleted := 0
+
+	for _, key := range args {
+		if key.Typ != resp.BULK.Typ {
+			continue
+		}
+
+		setStorageMutex.RLock()
+		_, ok := setStorage[key.Bulk]
+		setStorageMutex.RUnlock()
+
+		if !ok {
+			continue
+		}
+
+		setStorageMutex.Lock()
+		delete(setStorage, key.Bulk)
+		setStorageMutex.Unlock()
+
+		amountDeleted += 1
+	}
+
+	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
 
 // / Gets a value at a specific key

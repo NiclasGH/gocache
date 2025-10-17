@@ -80,7 +80,7 @@ func retrieveCommand(name string) (command.Command, error) {
 }
 
 func changedDatabase(result resp.Value, commandName string) bool {
-	return result.Typ != resp.ERROR.Typ && (commandName == command.SET || commandName == command.HSET)
+	return result.Typ != resp.ERROR.Typ && (commandName == command.SET || commandName == command.HSET || commandName == command.DEL || commandName == command.HDEL)
 }
 
 func errorValue(err error) resp.Value {

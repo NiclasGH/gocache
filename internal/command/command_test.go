@@ -14,7 +14,7 @@ func Test_ping(t *testing.T) {
 	}
 	expected := resp.Value{Typ: "string", Str: "PONG"}
 
-	ping, ok := Commands["PING"]
+	ping, ok := Commands[PING]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -39,7 +39,7 @@ func Test_pingWithArg(t *testing.T) {
 		},
 	}
 
-	ping, ok := Commands["PING"]
+	ping, ok := Commands[PING]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -75,7 +75,7 @@ func Test_set(t *testing.T) {
 		Str: "OK",
 	}
 
-	set, ok := Commands["SET"]
+	set, ok := Commands[SET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -108,7 +108,7 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 		},
 	}
 
-	set, ok := Commands["SET"]
+	set, ok := Commands[SET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -119,6 +119,115 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 
 	// then
 	assert.Equal(t, "error", result.Typ)
+}
+
+func Test_del(t *testing.T) {
+	// given
+	for k := range setStorage {
+		delete(setStorage, k)
+	}
+	setStorage["Tira"] = "Misu"
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 1,
+	}
+
+	del, ok := Commands[DEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := del(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	_, ok = setStorage["Tira"]
+	if ok {
+		t.Error("Set Storage Key 'Tira' was not deleted")
+		return
+	}
+}
+
+func Test_del_multipleKeys(t *testing.T) {
+	// given
+	for k := range setStorage {
+		delete(setStorage, k)
+	}
+	setStorage["Tira"] = "Misu"
+	setStorage["Misu"] = "Tira"
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Misu",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 2,
+	}
+
+	del, ok := Commands[DEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := del(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	_, ok = setStorage["Tira"]
+	if ok {
+		t.Error("Set Storage Key 'Tira' was not deleted")
+		return
+	}
+
+	_, ok = setStorage["Misu"]
+	if ok {
+		t.Error("Set Storage Key 'Misu' was not deleted")
+		return
+	}
+}
+
+func Test_del_needsAtLeastOneKey(t *testing.T) {
+	// given
+	args := []resp.Value{}
+
+	expected := resp.Value{
+		Typ: "error",
+		Str: "ERR wrong number of arguments for 'del' command",
+	}
+
+	del, ok := Commands[DEL]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := del(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_get(t *testing.T) {
@@ -140,7 +249,7 @@ func Test_get(t *testing.T) {
 		Bulk: "Misu",
 	}
 
-	get, ok := Commands["GET"]
+	get, ok := Commands[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -177,7 +286,7 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 		},
 	}
 
-	get, ok := Commands["GET"]
+	get, ok := Commands[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -207,7 +316,7 @@ func Test_getNoValueAvailable(t *testing.T) {
 		Typ: "null",
 	}
 
-	get, ok := Commands["GET"]
+	get, ok := Commands[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -245,7 +354,7 @@ func Test_hset(t *testing.T) {
 		Str: "OK",
 	}
 
-	hset, ok := Commands["HSET"]
+	hset, ok := Commands[HSET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -278,7 +387,7 @@ func Test_hsetNeedsThreeArgs(t *testing.T) {
 		},
 	}
 
-	hset, ok := Commands["HSET"]
+	hset, ok := Commands[HSET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -316,7 +425,7 @@ func Test_hget(t *testing.T) {
 		Bulk: "cute",
 	}
 
-	hget, ok := Commands["HGET"]
+	hget, ok := Commands[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -349,7 +458,7 @@ func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
 		},
 	}
 
-	hget, ok := Commands["HGET"]
+	hget, ok := Commands[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -383,7 +492,7 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 		Typ: "null",
 	}
 
-	hget, ok := Commands["HGET"]
+	hget, ok := Commands[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
