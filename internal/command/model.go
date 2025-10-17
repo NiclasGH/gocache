@@ -2,13 +2,15 @@ package command
 
 import "gocache/internal/resp"
 
-type intoValue interface {
-	values() []resp.Value
-	getCommand() string
+type Handler = func([]resp.Value) resp.Value
+
+type newCoolCommand struct {
+	name string
+	spec commandSpec
+	doc  commandDoc
 }
 
 type commandSpec struct {
-	command       string
 	argCount      int
 	flags         []string
 	firstKey      int
@@ -17,18 +19,21 @@ type commandSpec struct {
 	aclCategories []string
 }
 
-func (spec commandSpec) getCommand() string {
-	return spec.command
+type commandDoc struct {
+	summary    string
+	since      string
+	group      string
+	complexity string
 }
 
-func (spec commandSpec) values() []resp.Value {
-	flags := make([]resp.Value, len(spec.flags))
-	for i, v := range spec.flags {
+func (c newCoolCommand) specs() []resp.Value {
+	flags := make([]resp.Value, len(c.spec.flags))
+	for i, v := range c.spec.flags {
 		flags[i] = resp.Value{Typ: resp.BULK.Typ, Bulk: v}
 	}
 
-	aclCategories := make([]resp.Value, len(spec.aclCategories))
-	for i, v := range spec.aclCategories {
+	aclCategories := make([]resp.Value, len(c.spec.aclCategories))
+	for i, v := range c.spec.aclCategories {
 		aclCategories[i] = resp.Value{Typ: resp.BULK.Typ, Bulk: v}
 	}
 
@@ -36,15 +41,15 @@ func (spec commandSpec) values() []resp.Value {
 		{
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
-				{Typ: resp.BULK.Typ, Bulk: spec.command},
-				{Typ: resp.INTEGER.Typ, Num: spec.argCount},
+				{Typ: resp.BULK.Typ, Bulk: c.name},
+				{Typ: resp.INTEGER.Typ, Num: c.spec.argCount},
 				{
 					Typ:   resp.ARRAY.Typ,
 					Array: flags,
 				},
-				{Typ: resp.INTEGER.Typ, Num: spec.firstKey},
-				{Typ: resp.INTEGER.Typ, Num: spec.lastKey},
-				{Typ: resp.INTEGER.Typ, Num: spec.steps},
+				{Typ: resp.INTEGER.Typ, Num: c.spec.firstKey},
+				{Typ: resp.INTEGER.Typ, Num: c.spec.lastKey},
+				{Typ: resp.INTEGER.Typ, Num: c.spec.steps},
 				{
 					Typ:   resp.ARRAY.Typ,
 					Array: aclCategories,
@@ -54,19 +59,7 @@ func (spec commandSpec) values() []resp.Value {
 	}
 }
 
-type commandDoc struct {
-	command    string
-	summary    string
-	since      string
-	group      string
-	complexity string
-}
-
-func (doc commandDoc) getCommand() string {
-	return doc.command
-}
-
-func (doc commandDoc) values() []resp.Value {
+func (c newCoolCommand) docs() []resp.Value {
 	docs := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -74,7 +67,7 @@ func (doc commandDoc) values() []resp.Value {
 		},
 		{
 			Typ:  resp.BULK.Typ,
-			Bulk: doc.summary,
+			Bulk: c.doc.summary,
 		},
 		{
 			Typ:  resp.BULK.Typ,
@@ -82,7 +75,7 @@ func (doc commandDoc) values() []resp.Value {
 		},
 		{
 			Typ:  resp.BULK.Typ,
-			Bulk: doc.since,
+			Bulk: c.doc.since,
 		},
 
 		{
@@ -91,7 +84,7 @@ func (doc commandDoc) values() []resp.Value {
 		},
 		{
 			Typ:  resp.BULK.Typ,
-			Bulk: doc.group,
+			Bulk: c.doc.group,
 		},
 
 		{
@@ -100,14 +93,14 @@ func (doc commandDoc) values() []resp.Value {
 		},
 		{
 			Typ:  resp.BULK.Typ,
-			Bulk: doc.complexity,
+			Bulk: c.doc.complexity,
 		},
 	}
 
 	return []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
-			Bulk: doc.command,
+			Bulk: c.name,
 		},
 		{
 			Typ:   resp.ARRAY.Typ,
