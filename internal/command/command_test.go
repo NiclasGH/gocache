@@ -121,6 +121,127 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 	assert.Equal(t, "error", result.Typ)
 }
 
+func Test_incr(t *testing.T) {
+	// given
+	for k := range setStorage {
+		delete(setStorage, k)
+	}
+	setStorage["Tira"] = "5"
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 6,
+	}
+
+	incr, ok := Commands[INCR]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := incr(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	value, ok := setStorage["Tira"]
+	if !ok {
+		t.Error("Set Storage Key 'Tira' does not exist")
+		return
+	}
+	assert.Equal(t, value, "6")
+}
+
+func Test_incr_needsOneArg(t *testing.T) {
+	// given
+	args := []resp.Value{}
+
+	incr, ok := Commands[INCR]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := incr(args)
+
+	// then
+	assert.Equal(t, result.Typ, resp.ERROR.Typ)
+}
+
+func Test_incr_needsStringToBeNumber(t *testing.T) {
+	// given
+	for k := range setStorage {
+		delete(setStorage, k)
+	}
+	setStorage["Tira"] = "number"
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+	}
+
+	incr, ok := Commands[INCR]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := incr(args)
+
+	// then
+	assert.Equal(t, result.Typ, resp.ERROR.Typ)
+}
+
+func Test_incr_createsKeyIfNotExists(t *testing.T) {
+	// given
+	for k := range setStorage {
+		delete(setStorage, k)
+	}
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+	}
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 1,
+	}
+
+	incr, ok := Commands[INCR]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := incr(args)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	value, ok := setStorage["Tira"]
+	if !ok {
+		t.Error("Set Storage Key 'Tira' does not exist")
+		return
+	}
+	assert.Equal(t, value, "1")
+}
+
 func Test_del(t *testing.T) {
 	// given
 	for k := range setStorage {

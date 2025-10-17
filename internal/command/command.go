@@ -3,6 +3,7 @@ package command
 import (
 	"gocache/internal/resp"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -12,6 +13,7 @@ const (
 	DEL     = "DEL"
 	SET     = "SET"
 	GET     = "GET"
+	INCR    = "INCR"
 	HSET    = "HSET"
 	HGET    = "HGET"
 	HDEL    = "HDEL"
@@ -26,6 +28,7 @@ var Commands = map[string]Command{
 	SET:     set,
 	DEL:     del,
 	GET:     get,
+	INCR:    incr,
 	HSET:    hset,
 	HGET:    hget,
 	HDEL:    hdel,
@@ -100,6 +103,37 @@ func del(args []resp.Value) resp.Value {
 	}
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
+}
+
+// / Increments number at key. Returns an error if the key is not interpretable as an int
+// / INCR {key1}
+// / Example:
+// / Req: INCR tira
+// / Res: (integer) 2
+func incr(args []resp.Value) resp.Value {
+	if len(args) == 0 {
+		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'incr' command"}
+	}
+
+	key := args[0].Bulk
+
+	setStorageMutex.Lock()
+	defer setStorageMutex.Unlock()
+
+	value, ok := setStorage[key]
+	if !ok {
+		value = "0"
+	}
+
+	savedNumber, err := strconv.Atoi(value)
+	if err != nil {
+		return resp.Value{Typ: resp.ERROR.Typ, Str: "Value is not a number"}
+	}
+
+	savedNumber += 1
+	setStorage[key] = strconv.Itoa(savedNumber)
+
+	return resp.Value{Typ: resp.INTEGER.Typ, Num: savedNumber}
 }
 
 // / Gets a value at a specific key
