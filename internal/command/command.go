@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"gocache/internal/resp"
 	"log"
 	"strings"
@@ -197,7 +196,6 @@ func command(args []resp.Value) resp.Value {
 			commandFilter = ""
 		}
 
-		fmt.Printf("CommandFilter is: %s\n", commandFilter)
 		result = filterAndConvert(docs, commandFilter)
 	} else {
 		specs := commandSpecs()
@@ -274,6 +272,15 @@ func commandSpecs() []commandSpec {
 			aclCategories: []string{"@write", "@hash", "@fast"},
 		},
 		{
+			command:       "HDEL",
+			argCount:      -3,
+			flags:         []string{"write"},
+			firstKey:      1,
+			lastKey:       2,
+			steps:         1,
+			aclCategories: []string{"@write", "@fast", "@hash"},
+		},
+		{
 			command:       "HGETALL",
 			argCount:      2,
 			flags:         []string{"readonly"},
@@ -346,6 +353,13 @@ func commandDocs() []commandDoc {
 			since:      "2.0.0",
 			group:      "hash",
 			complexity: "O(1)",
+		},
+		{
+			command:    "HDEL",
+			summary:    "Removes the specified fields from the hash stored at key.",
+			since:      "2.0.0",
+			group:      "keyspace",
+			complexity: "O(N)",
 		},
 		{
 			command:    "HGETALL",

@@ -593,6 +593,37 @@ func Test_command_returnsSpecs(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				// 1. command
+				{Typ: resp.BULK.Typ, Bulk: "HDEL"},
+				// 2. arg count
+				{Typ: resp.INTEGER.Typ, Num: -3},
+				// 3. flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "write"},
+					},
+				},
+				// 4. first key
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 5. last key
+				{Typ: resp.INTEGER.Typ, Num: 2},
+				// 6. steps between keys
+				{Typ: resp.INTEGER.Typ, Num: 1},
+				// 7. ACL flags
+				{
+					Typ: resp.ARRAY.Typ,
+					Array: []resp.Value{
+						{Typ: resp.BULK.Typ, Bulk: "@write"},
+						{Typ: resp.BULK.Typ, Bulk: "@fast"},
+						{Typ: resp.BULK.Typ, Bulk: "@hash"},
+					},
+				},
+			},
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				// 1. command
 				{Typ: resp.BULK.Typ, Bulk: "HGETALL"},
 				// 2. arg count
 				{Typ: resp.INTEGER.Typ, Num: 2},
@@ -879,6 +910,26 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 
 				{Typ: resp.BULK.Typ, Bulk: "complexity"},
 				{Typ: resp.BULK.Typ, Bulk: "O(1)"},
+			},
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "HDEL",
+		},
+		{
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{Typ: resp.BULK.Typ, Bulk: "summary"},
+				{Typ: resp.BULK.Typ, Bulk: "Removes the specified fields from the hash stored at key."},
+
+				{Typ: resp.BULK.Typ, Bulk: "since"},
+				{Typ: resp.BULK.Typ, Bulk: "2.0.0"},
+
+				{Typ: resp.BULK.Typ, Bulk: "group"},
+				{Typ: resp.BULK.Typ, Bulk: "keyspace"},
+
+				{Typ: resp.BULK.Typ, Bulk: "complexity"},
+				{Typ: resp.BULK.Typ, Bulk: "O(N)"},
 			},
 		},
 		{
