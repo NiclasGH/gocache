@@ -1,13 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"gocache/internal/resp"
 	"net"
 	"strings"
 	"testing"
 
-	"github.com/pkg/errors"
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_handlesConnection_noArray_err(t *testing.T) {

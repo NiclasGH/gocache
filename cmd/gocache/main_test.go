@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_pingIntegrationTest(t *testing.T) {

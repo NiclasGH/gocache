@@ -3,7 +3,7 @@ package resp
 import (
 	"testing"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_writeBulk(t *testing.T) {
@@ -18,7 +18,7 @@ func Test_writeBulk(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, result, expected)
+	assert.EqualValues(t, result, expected)
 }
 
 func Test_writeString(t *testing.T) {
@@ -33,7 +33,7 @@ func Test_writeString(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, result, expected)
+	assert.EqualValues(t, result, expected)
 }
 
 func Test_writeError(t *testing.T) {
@@ -48,7 +48,7 @@ func Test_writeError(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, result, expected)
+	assert.EqualValues(t, result, expected)
 }
 
 func Test_writeInteger(t *testing.T) {
@@ -63,7 +63,7 @@ func Test_writeInteger(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, result, expected)
+	assert.EqualValues(t, result, expected)
 }
 
 func Test_writeArray(t *testing.T) {
@@ -87,7 +87,7 @@ func Test_writeArray(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, expected, result)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeNull(t *testing.T) {
@@ -101,7 +101,7 @@ func Test_writeNull(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.DeepEqual(t, result, expected)
+	assert.EqualValues(t, result, expected)
 }
 
 func Test_writeUnknown(t *testing.T) {

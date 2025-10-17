@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_readBulkMissingLineBreak_succeeds(t *testing.T) {
@@ -25,7 +25,7 @@ func Test_readBulkMissingLineBreak_succeeds(t *testing.T) {
 		t.Error("Expected non-failure during parsing. Got an error instead: ", err)
 	}
 
-	assert.DeepEqual(t, &expected, &result)
+	assert.EqualValues(t, &expected, &result)
 }
 
 func Test_readBulk(t *testing.T) {
@@ -46,7 +46,7 @@ func Test_readBulk(t *testing.T) {
 		t.Error("Expected non-failure during parsing. Got an error instead: ", err)
 	}
 
-	assert.DeepEqual(t, &expected, &result)
+	assert.EqualValues(t, &expected, &result)
 }
 
 func Test_readArrayWith2Bulks(t *testing.T) {
@@ -76,5 +76,5 @@ func Test_readArrayWith2Bulks(t *testing.T) {
 		t.Error("Expected non-failure during parsing. Got an error instead: ", err)
 	}
 
-	assert.DeepEqual(t, &expected, &result)
+	assert.EqualValues(t, &expected, &result)
 }

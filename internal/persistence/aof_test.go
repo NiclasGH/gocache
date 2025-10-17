@@ -8,7 +8,7 @@ import (
 	"gocache/internal/command"
 	"gocache/internal/resp"
 
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_savePersistsCommand(t *testing.T) {
@@ -111,5 +111,5 @@ func Test_initializeRepeatsCommands(t *testing.T) {
 
 	// then
 	assert.Equal(t, len(callbackCalls), 1)
-	assert.DeepEqual(t, callbackCalls[0], request)
+	assert.EqualValues(t, callbackCalls[0], request)
 }
