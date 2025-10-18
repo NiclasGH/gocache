@@ -41,3 +41,7 @@ gocache/
 ├── .githooks/        # Git hooks for development
 ├── Makefile          # Build and development commands
 ```
+
+### Rough Micro-Architecture
+Packages and their capabilities
+![](.github/architecture.png)

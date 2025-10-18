@@ -14,7 +14,7 @@ func Test_ping(t *testing.T) {
 	}
 	expected := resp.Value{Typ: "string", Str: "PONG"}
 
-	ping, ok := Commands[PING]
+	ping, ok := Strategies[PING]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -39,7 +39,7 @@ func Test_pingWithArg(t *testing.T) {
 		},
 	}
 
-	ping, ok := Commands[PING]
+	ping, ok := Strategies[PING]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -75,7 +75,7 @@ func Test_set(t *testing.T) {
 		Str: "OK",
 	}
 
-	set, ok := Commands[SET]
+	set, ok := Strategies[SET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -108,7 +108,7 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 		},
 	}
 
-	set, ok := Commands[SET]
+	set, ok := Strategies[SET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -140,7 +140,7 @@ func Test_incr(t *testing.T) {
 		Num: 6,
 	}
 
-	incr, ok := Commands[INCR]
+	incr, ok := Strategies[INCR]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -164,7 +164,7 @@ func Test_incr_needsOneArg(t *testing.T) {
 	// given
 	args := []resp.Value{}
 
-	incr, ok := Commands[INCR]
+	incr, ok := Strategies[INCR]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -191,7 +191,7 @@ func Test_incr_needsStringToBeNumber(t *testing.T) {
 		},
 	}
 
-	incr, ok := Commands[INCR]
+	incr, ok := Strategies[INCR]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -222,7 +222,7 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 		Num: 1,
 	}
 
-	incr, ok := Commands[INCR]
+	incr, ok := Strategies[INCR]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -261,7 +261,7 @@ func Test_del(t *testing.T) {
 		Num: 1,
 	}
 
-	del, ok := Commands[DEL]
+	del, ok := Strategies[DEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -304,7 +304,7 @@ func Test_del_multipleKeys(t *testing.T) {
 		Num: 2,
 	}
 
-	del, ok := Commands[DEL]
+	del, ok := Strategies[DEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -333,7 +333,7 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 	// given
 	args := []resp.Value{}
 
-	del, ok := Commands[DEL]
+	del, ok := Strategies[DEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -365,7 +365,7 @@ func Test_get(t *testing.T) {
 		Bulk: "Misu",
 	}
 
-	get, ok := Commands[GET]
+	get, ok := Strategies[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -402,7 +402,7 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 		},
 	}
 
-	get, ok := Commands[GET]
+	get, ok := Strategies[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -432,7 +432,7 @@ func Test_getNoValueAvailable(t *testing.T) {
 		Typ: "null",
 	}
 
-	get, ok := Commands[GET]
+	get, ok := Strategies[GET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -470,7 +470,7 @@ func Test_hset(t *testing.T) {
 		Str: "OK",
 	}
 
-	hset, ok := Commands[HSET]
+	hset, ok := Strategies[HSET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -503,7 +503,7 @@ func Test_hsetNeedsThreeArgs(t *testing.T) {
 		},
 	}
 
-	hset, ok := Commands[HSET]
+	hset, ok := Strategies[HSET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -541,7 +541,7 @@ func Test_hget(t *testing.T) {
 		Bulk: "cute",
 	}
 
-	hget, ok := Commands[HGET]
+	hget, ok := Strategies[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -574,7 +574,7 @@ func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
 		},
 	}
 
-	hget, ok := Commands[HGET]
+	hget, ok := Strategies[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -608,7 +608,7 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 		Typ: "null",
 	}
 
-	hget, ok := Commands[HGET]
+	hget, ok := Strategies[HGET]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -648,7 +648,7 @@ func Test_hdel(t *testing.T) {
 		Num: 1,
 	}
 
-	hdel, ok := Commands[HDEL]
+	hdel, ok := Strategies[HDEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -700,7 +700,7 @@ func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 		Num: 1,
 	}
 
-	hdel, ok := Commands[HDEL]
+	hdel, ok := Strategies[HDEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -752,7 +752,7 @@ func Test_hdel_deleteMultipleFields(t *testing.T) {
 		Num: 2,
 	}
 
-	hdel, ok := Commands[HDEL]
+	hdel, ok := Strategies[HDEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -794,7 +794,7 @@ func Test_hdel_needsAtLeastTwoArgs(t *testing.T) {
 		},
 	}
 
-	hdel, ok := Commands[HDEL]
+	hdel, ok := Strategies[HDEL]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -1156,7 +1156,7 @@ func Test_command_returnsSpecs(t *testing.T) {
 		},
 	}
 
-	commandSpecs, ok := Commands["COMMAND"]
+	commandSpecs, ok := Strategies["COMMAND"]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -1212,7 +1212,7 @@ func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
 		},
 	}
 
-	commandSpecs, ok := Commands["COMMAND"]
+	commandSpecs, ok := Strategies["COMMAND"]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -1454,7 +1454,7 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 		},
 	}
 
-	commandSpecs, ok := Commands["COMMAND"]
+	commandSpecs, ok := Strategies["COMMAND"]
 	if !ok {
 		t.Error("Command does not exist")
 		return
@@ -1503,7 +1503,7 @@ func Test_commandDocs_withFilter_caseInsensitive_returnsDocsOfFilter(t *testing.
 		},
 	}
 
-	commandSpecs, ok := Commands["COMMAND"]
+	commandSpecs, ok := Strategies["COMMAND"]
 	if !ok {
 		t.Error("Command does not exist")
 		return
