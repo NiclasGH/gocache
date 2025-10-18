@@ -246,7 +246,7 @@ func hgetAllStrategy(args []resp.Value) resp.Value {
 // / COMMAND -> All available commands and their specs (command structure, acl categories, tips, key specification and subcommands). For simplicity reason, I will implement only the first seven categories
 // / COMMAND {command} -> Same as Command but filtered to the command
 // / COMMAND DOCS -> Docs about the commands. may include: summary, since redis version, functional group, complexity, doc_flags, arguments. We only use summary, group and complexity
-func commandInfoStrategy(args []resp.Value) resp.Value {
+func commandMetadataStrategy(args []resp.Value) resp.Value {
 	commandFilter := ""
 	if len(args) >= 1 {
 		commandFilter = strings.ToUpper(args[0].Bulk)
@@ -254,41 +254,27 @@ func commandInfoStrategy(args []resp.Value) resp.Value {
 
 	var result []resp.Value
 
+	metadata := commandList()
 	if commandFilter == "DOCS" {
-		docs := commandList()
-
 		if len(args) >= 2 {
 			commandFilter = strings.ToUpper(args[1].Bulk)
 		} else {
 			commandFilter = ""
 		}
 
-		result = filterAndDoc(docs, commandFilter)
+		result = filterCommands(metadata, commandFilter, (*commandMetadata).docs)
 	} else {
-		specs := commandList()
-		result = filterAndSpec(specs, commandFilter)
+		result = filterCommands(metadata, commandFilter, (*commandMetadata).specs)
 	}
 
 	return resp.Value{Typ: resp.ARRAY.Typ, Array: result}
 }
 
-// TODO merge
-func filterAndDoc(items []commandMetadata, filter string) []resp.Value {
+func filterCommands(items []commandMetadata, filter string, accessor func(*commandMetadata) []resp.Value) []resp.Value {
 	result := make([]resp.Value, 0, len(items))
-	for _, item := range items {
-		if filter == "" || item.name == filter {
-			result = append(result, item.docs()...)
-		}
-	}
-	return result
-}
-
-// TODO merge
-func filterAndSpec(items []commandMetadata, filter string) []resp.Value {
-	result := make([]resp.Value, 0, len(items))
-	for _, item := range items {
-		if filter == "" || item.name == filter {
-			result = append(result, item.specs()...)
+	for i := range items {
+		if filter == "" || items[i].name == filter {
+			result = append(result, accessor(&items[i])...)
 		}
 	}
 	return result

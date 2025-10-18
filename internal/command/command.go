@@ -28,7 +28,7 @@ var Strategies = map[string]CommandStrategy{
 	HGET:    hgetStrategy,
 	HDEL:    hdelStrategy,
 	HGETALL: hgetAllStrategy,
-	COMMAND: commandInfoStrategy,
+	COMMAND: commandMetadataStrategy,
 }
 
 var commandMetadatas = []commandMetadata{
