@@ -12,7 +12,7 @@ import (
 // / Example:
 // / Req: PING
 // / Res: PONG
-func pingHandler(args []resp.Value) resp.Value {
+func pingStrategy(args []resp.Value) resp.Value {
 	if len(args) == 0 {
 		return resp.Value{Typ: "string", Str: "PONG"}
 	}
@@ -25,7 +25,7 @@ func pingHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: SET tira misu
 // / Res: OK
-func setHandler(args []resp.Value) resp.Value {
+func setStrategy(args []resp.Value) resp.Value {
 	if len(args) != 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'set' command"}
 	}
@@ -45,7 +45,7 @@ func setHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: GET tira
 // / Res: misu
-func getHandler(args []resp.Value) resp.Value {
+func getStrategy(args []resp.Value) resp.Value {
 	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'get' command"}
 	}
@@ -69,7 +69,7 @@ func getHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: DEL tira
 // / Res: (integer) 1
-func delHandler(args []resp.Value) resp.Value {
+func delStrategy(args []resp.Value) resp.Value {
 	if len(args) == 0 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'del' command"}
 	}
@@ -97,7 +97,7 @@ func delHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: INCR tira
 // / Res: (integer) 2
-func incrHandler(args []resp.Value) resp.Value {
+func incrStrategy(args []resp.Value) resp.Value {
 	if len(args) == 0 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'incr' command"}
 	}
@@ -128,7 +128,7 @@ func incrHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HSET tira misu cute
 // / Res: OK
-func hsetHandler(args []resp.Value) resp.Value {
+func hsetStrategy(args []resp.Value) resp.Value {
 	if len(args) != 3 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hset' command"}
 	}
@@ -152,7 +152,7 @@ func hsetHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HGET tira misu
 // / Res: cute
-func hgetHandler(args []resp.Value) resp.Value {
+func hgetStrategy(args []resp.Value) resp.Value {
 	if len(args) != 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hget' command"}
 	}
@@ -177,7 +177,7 @@ func hgetHandler(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HDEL tira misu
 // / Res: (integer) 1
-func hdelHandler(args []resp.Value) resp.Value {
+func hdelStrategy(args []resp.Value) resp.Value {
 	if len(args) < 2 {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: "ERR wrong number of arguments for 'hdel' command"}
 	}
@@ -217,7 +217,7 @@ func hdelHandler(args []resp.Value) resp.Value {
 // / Res:
 // / misu
 // / cute
-func hgetAllHandler(args []resp.Value) resp.Value {
+func hgetAllStrategy(args []resp.Value) resp.Value {
 	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hgetall' command"}
 	}
@@ -246,7 +246,7 @@ func hgetAllHandler(args []resp.Value) resp.Value {
 // / COMMAND -> All available commands and their specs (command structure, acl categories, tips, key specification and subcommands). For simplicity reason, I will implement only the first seven categories
 // / COMMAND {command} -> Same as Command but filtered to the command
 // / COMMAND DOCS -> Docs about the commands. may include: summary, since redis version, functional group, complexity, doc_flags, arguments. We only use summary, group and complexity
-func commandInfoHandler(args []resp.Value) resp.Value {
+func commandInfoStrategy(args []resp.Value) resp.Value {
 	commandFilter := ""
 	if len(args) >= 1 {
 		commandFilter = strings.ToUpper(args[0].Bulk)
@@ -273,7 +273,7 @@ func commandInfoHandler(args []resp.Value) resp.Value {
 }
 
 // TODO merge
-func filterAndDoc(items []newCoolCommand, filter string) []resp.Value {
+func filterAndDoc(items []commandMetadata, filter string) []resp.Value {
 	result := make([]resp.Value, 0, len(items))
 	for _, item := range items {
 		if filter == "" || item.name == filter {
@@ -284,7 +284,7 @@ func filterAndDoc(items []newCoolCommand, filter string) []resp.Value {
 }
 
 // TODO merge
-func filterAndSpec(items []newCoolCommand, filter string) []resp.Value {
+func filterAndSpec(items []commandMetadata, filter string) []resp.Value {
 	result := make([]resp.Value, 0, len(items))
 	for _, item := range items {
 		if filter == "" || item.name == filter {
@@ -294,9 +294,9 @@ func filterAndSpec(items []newCoolCommand, filter string) []resp.Value {
 	return result
 }
 
-func commandList() []newCoolCommand {
-	docs := make([]newCoolCommand, 0, len(supportedCommands))
-	for _, v := range supportedCommands {
+func commandList() []commandMetadata {
+	docs := make([]commandMetadata, 0, len(commandMetadatas))
+	for _, v := range commandMetadatas {
 		docs = append(docs, v)
 	}
 	return docs

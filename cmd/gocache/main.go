@@ -70,7 +70,7 @@ func initializeDatabase() (persistence.Database, error) {
 		commandName := strings.ToUpper(value.Array[0].Bulk)
 		args := value.Array[1:]
 
-		command, ok := command.Handlers[commandName]
+		command, ok := command.Strategies[commandName]
 		if !ok {
 			return
 		}

@@ -2,12 +2,13 @@ package command
 
 import "gocache/internal/resp"
 
-type Handler = func([]resp.Value) resp.Value
+type CommandStrategy = func([]resp.Value) resp.Value
 
-type newCoolCommand struct {
-	name string
-	spec commandSpec
-	doc  commandDoc
+type commandMetadata struct {
+	name        string
+	subCommands []commandMetadata
+	spec        commandSpec
+	doc         commandDoc
 }
 
 type commandSpec struct {
@@ -26,7 +27,7 @@ type commandDoc struct {
 	complexity string
 }
 
-func (c newCoolCommand) specs() []resp.Value {
+func (c commandMetadata) specs() []resp.Value {
 	flags := make([]resp.Value, len(c.spec.flags))
 	for i, v := range c.spec.flags {
 		flags[i] = resp.Value{Typ: resp.BULK.Typ, Bulk: v}
@@ -37,7 +38,7 @@ func (c newCoolCommand) specs() []resp.Value {
 		aclCategories[i] = resp.Value{Typ: resp.BULK.Typ, Bulk: v}
 	}
 
-	return []resp.Value{
+	commandSpecs := []resp.Value{
 		{
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
@@ -57,9 +58,15 @@ func (c newCoolCommand) specs() []resp.Value {
 			},
 		},
 	}
+
+	for _, v := range c.subCommands {
+		commandSpecs = append(commandSpecs, v.specs()...)
+	}
+
+	return commandSpecs
 }
 
-func (c newCoolCommand) docs() []resp.Value {
+func (c commandMetadata) docs() []resp.Value {
 	docs := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -97,7 +104,7 @@ func (c newCoolCommand) docs() []resp.Value {
 		},
 	}
 
-	return []resp.Value{
+	commandDocs := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
 			Bulk: c.name,
@@ -107,4 +114,10 @@ func (c newCoolCommand) docs() []resp.Value {
 			Array: docs,
 		},
 	}
+
+	for _, v := range c.subCommands {
+		commandDocs = append(commandDocs, v.docs()...)
+	}
+
+	return commandDocs
 }

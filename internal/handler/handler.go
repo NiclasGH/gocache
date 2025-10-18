@@ -70,8 +70,8 @@ func retrieveCommandName(value resp.Value) (string, error) {
 	return strings.ToUpper(commandValue.Bulk), nil
 }
 
-func retrieveCommand(name string) (command.Handler, error) {
-	command, ok := command.Handlers[name]
+func retrieveCommand(name string) (command.CommandStrategy, error) {
+	command, ok := command.Strategies[name]
 	if !ok {
 		return nil, errors.New("Command is unknown")
 	}
