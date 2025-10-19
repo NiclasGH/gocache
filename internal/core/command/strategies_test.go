@@ -294,7 +294,7 @@ func Test_del_multipleKeys(t *testing.T) {
 	}
 
 	// when
-	result := del(request(DEL, args), defaultDb())
+	result := del(request(DEL, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -353,7 +353,7 @@ func Test_get(t *testing.T) {
 	}
 
 	// when
-	result := get(request(GET, args), defaultDb())
+	result := get(request(GET, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -625,7 +625,7 @@ func Test_hdel(t *testing.T) {
 	assert.EqualValues(t, expected, result)
 
 	valueMap, err := db.GetHSet("tira")
-	if err == nil {
+	if err != nil {
 		t.Error("HSet Storage did get hash 'tira' deleted")
 		return
 	}

@@ -99,7 +99,7 @@ func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys
 		}
 	}
 
-	if len(hash) == 0 {
+	if len(hashMap) == 0 {
 		delete(db.hsetStorage.store, hash)
 	}
 
