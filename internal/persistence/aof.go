@@ -15,7 +15,7 @@ type Aof struct {
 	mutex  sync.Mutex
 }
 
-func newAof(path string) (*Aof, error) {
+func NewAof(path string) (*Aof, error) {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return nil, err

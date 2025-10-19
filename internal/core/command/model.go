@@ -1,8 +1,11 @@
 package command
 
-import "gocache/internal/core/resp"
+import (
+	"gocache/internal/core/resp"
+	"gocache/internal/persistence"
+)
 
-type CommandStrategy = func([]resp.Value) resp.Value
+type CommandStrategy = func(resp.Value, persistence.Database) resp.Value
 
 type commandMetadata struct {
 	name        string

@@ -1,6 +1,8 @@
 package resp
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type Typ struct {
 	RespCode byte
@@ -45,6 +47,10 @@ func (v Value) Marshal() []byte {
 	default:
 		return []byte{}
 	}
+}
+
+func (v Value) GetArgs() []Value {
+	return v.Array[1:]
 }
 
 func (v Value) marshalArray() []byte {

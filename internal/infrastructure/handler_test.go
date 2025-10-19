@@ -16,9 +16,7 @@ func Test_handlesConnection_noArray_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	testDb := TestDatabase{[]resp.Value{}}
-
-	go HandleConnection(server, testDb)
+	go HandleConnection(server, defaultDb())
 
 	// when
 	client.Write([]byte("$4\r\nTira\r\n"))
@@ -47,9 +45,7 @@ func Test_handlesConnection_noBulkInArray_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	testDb := TestDatabase{[]resp.Value{}}
-
-	go HandleConnection(server, testDb)
+	go HandleConnection(server, defaultDb())
 
 	// when
 	client.Write([]byte("*1\r\n*1\r\n$4\r\nTira\r\n"))
@@ -78,9 +74,7 @@ func Test_handlesConnection_unknownCommand_err(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	testDb := TestDatabase{[]resp.Value{}}
-
-	go HandleConnection(server, testDb)
+	go HandleConnection(server, defaultDb())
 
 	// when
 	client.Write([]byte("*1\r\n$7\r\nUNKNOWN\r\n"))
@@ -109,7 +103,7 @@ func Test_handlesConnection_ping(t *testing.T) {
 	defer client.Close()
 	defer server.Close()
 
-	testDb := TestDatabase{[]resp.Value{}}
+	testDb := defaultDb()
 
 	go HandleConnection(server, testDb)
 
@@ -130,32 +124,44 @@ func Test_handlesConnection_ping(t *testing.T) {
 	assert.Equal(t, len(testDb.executedCommands), 0)
 }
 
-// Could be replaced with actual mocks
-// TODO apparently I have no test for this? lol
-type TestDatabase struct {
+type testDatabase struct {
 	executedCommands []resp.Value
 }
 
-func (db TestDatabase) GetInit() ([]resp.Value, error) {
+func defaultDb() testDatabase {
+	return testDatabase{[]resp.Value{}}
+}
+
+func (db testDatabase) GetInit() ([]resp.Value, error) {
 	return nil, errors.New("Should never run this unmocked method Initialize()")
 }
-func (db TestDatabase) Close() error {
+func (db testDatabase) Close() error {
 	return errors.New("Should never run this unmocked method Close()")
 }
-func (db TestDatabase) SaveSet(value resp.Value, _ string, _ string) error {
+func (db testDatabase) SaveSet(value resp.Value, _ string, _ string) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
 }
 
-func (db TestDatabase) GetSet(string) (string, error) {
+func (db testDatabase) DeleteAllSet(value resp.Value, _ []string) int {
+	db.executedCommands = append(db.executedCommands, value)
+	return 1
+}
+
+func (db testDatabase) DeleteAllHSet(value resp.Value, _ string, _ []string) int {
+	db.executedCommands = append(db.executedCommands, value)
+	return 1
+}
+
+func (db testDatabase) GetSet(string) (string, error) {
 	return "", errors.New("Should never run this unmocked method GetSet()")
 }
 
-func (db TestDatabase) SaveHSet(value resp.Value, _ string, _ string, _ string) error {
+func (db testDatabase) SaveHSet(value resp.Value, _ string, _ string, _ string) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
 }
 
-func (db TestDatabase) GetHSet(string) (map[string]string, error) {
+func (db testDatabase) GetHSet(string) (map[string]string, error) {
 	return nil, errors.New("Should never run this unmocked method GetHSet()")
 }

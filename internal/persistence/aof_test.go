@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"gocache/internal/core/command"
 	"gocache/internal/core/resp"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +17,7 @@ func Test_savePersistsCommand(t *testing.T) {
 		Array: []resp.Value{
 			{
 				Typ:  resp.BULK.Typ,
-				Bulk: command.SET,
+				Bulk: "SET",
 			},
 			{
 				Typ:  resp.BULK.Typ,
@@ -40,7 +39,7 @@ func Test_savePersistsCommand(t *testing.T) {
 	}
 	defer os.Remove(file.Name())
 
-	aof, err := newAof(file.Name())
+	aof, err := NewAof(file.Name())
 	if err != nil {
 		t.Error(err)
 		return
@@ -70,7 +69,7 @@ func Test_initializeReturnsCommands(t *testing.T) {
 		Array: []resp.Value{
 			{
 				Typ:  resp.BULK.Typ,
-				Bulk: command.SET,
+				Bulk: "SET",
 			},
 			{
 				Typ:  resp.BULK.Typ,
@@ -91,7 +90,7 @@ func Test_initializeReturnsCommands(t *testing.T) {
 	defer os.Remove(file.Name())
 	file.Write(request.Marshal())
 
-	aof, err := newAof(file.Name())
+	aof, err := NewAof(file.Name())
 	if err != nil {
 		t.Error(err)
 		return

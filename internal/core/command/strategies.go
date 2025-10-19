@@ -2,6 +2,7 @@ package command
 
 import (
 	"gocache/internal/core/resp"
+	"gocache/internal/persistence"
 	"log"
 	"strconv"
 	"strings"
@@ -12,7 +13,9 @@ import (
 // / Example:
 // / Req: PING
 // / Res: PONG
-func pingStrategy(args []resp.Value) resp.Value {
+func pingStrategy(request resp.Value, _ persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) == 0 {
 		return resp.Value{Typ: "string", Str: "PONG"}
 	}
@@ -25,7 +28,9 @@ func pingStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: SET tira misu
 // / Res: OK
-func setStrategy(args []resp.Value) resp.Value {
+func setStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) != 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'set' command"}
 	}
@@ -33,9 +38,7 @@ func setStrategy(args []resp.Value) resp.Value {
 	key := args[0].Bulk
 	value := args[1].Bulk
 
-	setStorageMutex.Lock()
-	setStorage[key] = value
-	setStorageMutex.Unlock()
+	db.SaveSet(request, key, value)
 
 	return okResponse
 }
@@ -45,18 +48,17 @@ func setStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: GET tira
 // / Res: misu
-func getStrategy(args []resp.Value) resp.Value {
+func getStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'get' command"}
 	}
 
 	key := args[0].Bulk
 
-	setStorageMutex.RLock()
-	value, ok := setStorage[key]
-	setStorageMutex.RUnlock()
-
-	if !ok {
+	value, err := db.GetSet(key)
+	if err != nil {
 		log.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
 	}
@@ -69,25 +71,23 @@ func getStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: DEL tira
 // / Res: (integer) 1
-func delStrategy(args []resp.Value) resp.Value {
+func delStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) == 0 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'del' command"}
 	}
 
-	setStorageMutex.Lock()
-	defer setStorageMutex.Unlock()
-
-	amountDeleted := 0
+	keys := []string{}
 	for _, key := range args {
 		if key.Typ != resp.BULK.Typ {
 			continue
 		}
 
-		if _, ok := setStorage[key.Bulk]; ok {
-			delete(setStorage, key.Bulk)
-			amountDeleted += 1
-		}
+		keys = append(keys, key.Bulk)
 	}
+
+	amountDeleted := db.DeleteAllSet(request, keys)
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
@@ -97,18 +97,17 @@ func delStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: INCR tira
 // / Res: (integer) 2
-func incrStrategy(args []resp.Value) resp.Value {
+func incrStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) == 0 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'incr' command"}
 	}
 
 	key := args[0].Bulk
 
-	setStorageMutex.Lock()
-	defer setStorageMutex.Unlock()
-
-	value, ok := setStorage[key]
-	if !ok {
+	value, err := db.GetSet(key)
+	if err != nil {
 		value = "0"
 	}
 
@@ -118,7 +117,9 @@ func incrStrategy(args []resp.Value) resp.Value {
 	}
 
 	savedNumber += 1
-	setStorage[key] = strconv.Itoa(savedNumber)
+	if err = db.SaveSet(request, key, strconv.Itoa(savedNumber)); err != nil {
+		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
+	}
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: savedNumber}
 }
@@ -128,7 +129,9 @@ func incrStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HSET tira misu cute
 // / Res: OK
-func hsetStrategy(args []resp.Value) resp.Value {
+func hsetStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) != 3 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hset' command"}
 	}
@@ -137,12 +140,9 @@ func hsetStrategy(args []resp.Value) resp.Value {
 	key := args[1].Bulk
 	value := args[2].Bulk
 
-	hsetStorageMutex.Lock()
-	if _, ok := hsetStorage[hash]; !ok {
-		hsetStorage[hash] = map[string]string{}
+	if err := db.SaveHSet(request, hash, key, value); err != nil {
+		return resp.Value{Typ: "error", Str: err.Error()}
 	}
-	hsetStorage[hash][key] = value
-	hsetStorageMutex.Unlock()
 
 	return okResponse
 }
@@ -152,7 +152,9 @@ func hsetStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HGET tira misu
 // / Res: cute
-func hgetStrategy(args []resp.Value) resp.Value {
+func hgetStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) != 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hget' command"}
 	}
@@ -160,12 +162,14 @@ func hgetStrategy(args []resp.Value) resp.Value {
 	hash := args[0].Bulk
 	key := args[1].Bulk
 
-	hsetStorageMutex.RLock()
-	value, ok := hsetStorage[hash][key]
-	hsetStorageMutex.RUnlock()
-
+	mapValue, err := db.GetHSet(hash)
+	if err != nil {
+		log.Printf("Did not find any value with hash %s\n", hash)
+		return resp.Value{Typ: "null"}
+	}
+	value, ok := mapValue[key]
 	if !ok {
-		log.Printf("Did not find any value with hash %s or key %s\n", hash, key)
+		log.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
 	}
 
@@ -177,35 +181,25 @@ func hgetStrategy(args []resp.Value) resp.Value {
 // / Example:
 // / Req: HDEL tira misu
 // / Res: (integer) 1
-func hdelStrategy(args []resp.Value) resp.Value {
+func hdelStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) < 2 {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: "ERR wrong number of arguments for 'hdel' command"}
 	}
 
 	hashKey := args[0].Bulk
-	hsetStorageMutex.Lock()
-	defer hsetStorageMutex.Unlock()
 
-	hash, ok := hsetStorage[hashKey]
-	if !ok {
-		return resp.Value{Typ: resp.INTEGER.Typ, Num: 0}
-	}
-
-	amountDeleted := 0
-
+	keys := []string{}
 	for _, key := range args[1:] {
 		if key.Typ != resp.BULK.Typ {
 			continue
 		}
-		if _, ok := hash[key.Bulk]; ok {
-			delete(hash, key.Bulk)
-			amountDeleted++
-		}
+
+		keys = append(keys, key.Bulk)
 	}
 
-	if len(hash) == 0 {
-		delete(hsetStorage, hashKey)
-	}
+	amountDeleted := db.DeleteAllHSet(request, hashKey, keys)
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
@@ -217,19 +211,19 @@ func hdelStrategy(args []resp.Value) resp.Value {
 // / Res:
 // / misu
 // / cute
-func hgetAllStrategy(args []resp.Value) resp.Value {
+func hgetAllStrategy(request resp.Value, db persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	if len(args) != 1 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'hgetall' command"}
 	}
 
 	hash := args[0].Bulk
 
-	hsetStorageMutex.RLock()
-	value, ok := hsetStorage[hash]
-	hsetStorageMutex.RUnlock()
+	value, err := db.GetHSet(hash)
 
-	if !ok {
-		log.Printf("Did not find any value with hash %s\n", hash)
+	if err != nil {
+		log.Println(err.Error())
 		return resp.Value{Typ: "null"}
 	}
 
@@ -246,7 +240,9 @@ func hgetAllStrategy(args []resp.Value) resp.Value {
 // / COMMAND -> All available commands and their specs (command structure, acl categories, tips, key specification and subcommands). For simplicity reason, I will implement only the first seven categories
 // / COMMAND {command} -> Same as Command but filtered to the command
 // / COMMAND DOCS -> Docs about the commands. may include: summary, since redis version, functional group, complexity, doc_flags, arguments. We only use summary, group and complexity
-func commandMetadataStrategy(args []resp.Value) resp.Value {
+func commandMetadataStrategy(request resp.Value, _ persistence.Database) resp.Value {
+	args := request.GetArgs()
+
 	commandFilter := ""
 	if len(args) >= 1 {
 		commandFilter = strings.ToUpper(args[0].Bulk)

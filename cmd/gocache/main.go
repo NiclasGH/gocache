@@ -59,10 +59,14 @@ func initializeDatabase() (persistence.Database, error) {
 		databasePath = "database.aof"
 	}
 
-	database, err := persistence.NewDatabase(databasePath)
+	aof, err := persistence.NewAof(databasePath)
 	if err != nil {
 		return nil, err
 	}
+
+	database := persistence.NewDatabase(aof)
+
+	// TODO call initiliazation use case
 
 	return database, nil
 }

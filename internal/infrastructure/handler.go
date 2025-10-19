@@ -45,11 +45,11 @@ func HandleConnection(connection net.Conn, database persistence.Database) error 
 			continue
 		}
 
-		result := command(value.Array[1:])
-		// TODO move into command
-		if changedDatabase(result, commandName) {
-			// database.Save(value)
-		}
+		result := command(value, database)
+		// // TODO move into command
+		// if changedDatabase(result, commandName) {
+		// 	// database.Save(value)
+		// }
 
 		writer.Write(result)
 	}
@@ -78,10 +78,6 @@ func retrieveCommand(name string) (command.CommandStrategy, error) {
 	}
 
 	return command, nil
-}
-
-func changedDatabase(result resp.Value, commandName string) bool {
-	return result.Typ != resp.ERROR.Typ && (commandName == command.SET || commandName == command.HSET || commandName == command.DEL || commandName == command.HDEL)
 }
 
 func errorValue(err error) resp.Value {

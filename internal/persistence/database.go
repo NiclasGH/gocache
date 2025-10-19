@@ -23,12 +23,7 @@ type DatabaseImpl struct {
 	diskPersistence diskPersistence
 }
 
-func NewDatabase(path string) (*DatabaseImpl, error) {
-	aof, err := newAof(path)
-	if err != nil {
-		return nil, err
-	}
-
+func NewDatabase(diskPersistence diskPersistence) *DatabaseImpl {
 	return &DatabaseImpl{
 		setStorage: setStorage{
 			store: map[string]string{},
@@ -37,8 +32,8 @@ func NewDatabase(path string) (*DatabaseImpl, error) {
 			store: map[string]map[string]string{},
 		},
 
-		diskPersistence: aof,
-	}, nil
+		diskPersistence: diskPersistence,
+	}
 }
 
 func (db *DatabaseImpl) SaveSet(requestValue resp.Value, key string, value string) error {
@@ -61,6 +56,21 @@ func (db *DatabaseImpl) GetSet(key string) (string, error) {
 	return value, nil
 }
 
+func (db *DatabaseImpl) DeleteAllSet(requestValue resp.Value, keys []string) int {
+	db.setStorage.mutex.Lock()
+	defer db.setStorage.mutex.Unlock()
+
+	amountDeleted := 0
+	for _, key := range keys {
+		if _, ok := db.setStorage.store[key]; ok {
+			delete(db.setStorage.store, key)
+			amountDeleted += 1
+		}
+	}
+
+	return amountDeleted
+}
+
 func (db *DatabaseImpl) SaveHSet(requestValue resp.Value, hash string, key string, value string) error {
 	db.hsetStorage.mutex.Lock()
 	if _, ok := db.hsetStorage.store[hash]; !ok {
@@ -70,6 +80,30 @@ func (db *DatabaseImpl) SaveHSet(requestValue resp.Value, hash string, key strin
 	db.hsetStorage.mutex.Unlock()
 
 	return db.diskPersistence.Save(requestValue)
+}
+
+func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys []string) int {
+	db.hsetStorage.mutex.Lock()
+	defer db.hsetStorage.mutex.Unlock()
+
+	hashMap, ok := db.hsetStorage.store[hash]
+	if !ok {
+		return 0
+	}
+
+	amountDeleted := 0
+	for _, key := range keys {
+		if _, ok := hashMap[key]; ok {
+			delete(hashMap, key)
+			amountDeleted++
+		}
+	}
+
+	if len(hash) == 0 {
+		delete(db.hsetStorage.store, hash)
+	}
+
+	return amountDeleted
 }
 
 func (db *DatabaseImpl) GetHSet(hash string) (map[string]string, error) {

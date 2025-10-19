@@ -5,11 +5,13 @@ import (
 )
 
 type Database interface {
-	SaveSet(resp.Value, string, string) error
-	GetSet(string) (string, error)
+	SaveSet(request resp.Value, key string, value string) error
+	DeleteAllSet(request resp.Value, keys []string) int
+	GetSet(key string) (string, error)
 
-	SaveHSet(resp.Value, string, string, string) error
-	GetHSet(string) (map[string]string, error)
+	SaveHSet(request resp.Value, hash string, key string, value string) error
+	DeleteAllHSet(request resp.Value, hash string, keys []string) int
+	GetHSet(hash string) (map[string]string, error)
 
 	GetInit() ([]resp.Value, error)
 	Close() error

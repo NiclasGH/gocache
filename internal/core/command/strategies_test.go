@@ -1,7 +1,9 @@
 package command
 
 import (
+	"errors"
 	"gocache/internal/core/resp"
+	"gocache/internal/persistence"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,9 +11,6 @@ import (
 
 func Test_ping(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
 	expected := resp.Value{Typ: "string", Str: "PONG"}
 
 	ping, ok := Strategies[PING]
@@ -20,8 +19,10 @@ func Test_ping(t *testing.T) {
 		return
 	}
 
+	args := request(PING, []resp.Value{})
+
 	// when
-	result := ping([]resp.Value{})
+	result := ping(args, defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -29,9 +30,6 @@ func Test_ping(t *testing.T) {
 
 func Test_pingWithArg(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -48,7 +46,7 @@ func Test_pingWithArg(t *testing.T) {
 	expected := resp.Value{Typ: "string", Str: "Tiramisu"}
 
 	// when
-	result := ping(args)
+	result := ping(request(PING, args), defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -56,9 +54,6 @@ func Test_pingWithArg(t *testing.T) {
 
 func Test_set(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -81,14 +76,16 @@ func Test_set(t *testing.T) {
 		return
 	}
 
+	db := defaultDb()
+
 	// when
-	result := set(args)
+	result := set(request(SET, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := setStorage["Tira"]
-	if !ok {
+	value, err := db.GetSet("Tira")
+	if err != nil {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
 	}
@@ -97,10 +94,6 @@ func Test_set(t *testing.T) {
 
 func Test_setNeedsTwoArgs(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -115,7 +108,7 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 	}
 
 	// when
-	result := set(args)
+	result := set(request(SET, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -123,10 +116,8 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 
 func Test_incr(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-	setStorage["Tira"] = "5"
+	db := defaultDb()
+	db.SaveSet(resp.Value{}, "Tira", "5")
 
 	args := []resp.Value{
 		{
@@ -147,13 +138,13 @@ func Test_incr(t *testing.T) {
 	}
 
 	// when
-	result := incr(args)
+	result := incr(request(INCR, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := setStorage["Tira"]
-	if !ok {
+	value, err := db.GetSet("Tira")
+	if err != nil {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
@@ -171,7 +162,7 @@ func Test_incr_needsOneArg(t *testing.T) {
 	}
 
 	// when
-	result := incr(args)
+	result := incr(request(INCR, args), defaultDb())
 
 	// then
 	assert.Equal(t, result.Typ, resp.ERROR.Typ)
@@ -179,10 +170,8 @@ func Test_incr_needsOneArg(t *testing.T) {
 
 func Test_incr_needsStringToBeNumber(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-	setStorage["Tira"] = "number"
+	db := defaultDb()
+	db.SaveSet(resp.Value{}, "Tira", "number")
 
 	args := []resp.Value{
 		{
@@ -198,7 +187,7 @@ func Test_incr_needsStringToBeNumber(t *testing.T) {
 	}
 
 	// when
-	result := incr(args)
+	result := incr(request(INCR, args), db)
 
 	// then
 	assert.Equal(t, result.Typ, resp.ERROR.Typ)
@@ -206,10 +195,6 @@ func Test_incr_needsStringToBeNumber(t *testing.T) {
 
 func Test_incr_createsKeyIfNotExists(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -228,14 +213,16 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 		return
 	}
 
+	db := defaultDb()
+
 	// when
-	result := incr(args)
+	result := incr(request(INCR, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := setStorage["Tira"]
-	if !ok {
+	value, err := db.GetSet("Tira")
+	if err != nil {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
@@ -244,10 +231,8 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 
 func Test_del(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-	setStorage["Tira"] = "Misu"
+	db := defaultDb()
+	db.SaveSet(resp.Value{}, "Tira", "Misu")
 
 	args := []resp.Value{
 		{
@@ -268,13 +253,13 @@ func Test_del(t *testing.T) {
 	}
 
 	// when
-	result := del(args)
+	result := del(request(DEL, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, ok = setStorage["Tira"]
-	if ok {
+	_, err := db.GetSet("Tira")
+	if err == nil {
 		t.Error("Set Storage Key 'Tira' was not deleted")
 		return
 	}
@@ -282,11 +267,9 @@ func Test_del(t *testing.T) {
 
 func Test_del_multipleKeys(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-	setStorage["Tira"] = "Misu"
-	setStorage["Misu"] = "Tira"
+	db := defaultDb()
+	db.SaveSet(resp.Value{}, "Tira", "Misu")
+	db.SaveSet(resp.Value{}, "Misu", "Tira")
 
 	args := []resp.Value{
 		{
@@ -311,19 +294,19 @@ func Test_del_multipleKeys(t *testing.T) {
 	}
 
 	// when
-	result := del(args)
+	result := del(request(DEL, args), defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, ok = setStorage["Tira"]
-	if ok {
+	_, err := db.GetSet("Tira")
+	if err == nil {
 		t.Error("Set Storage Key 'Tira' was not deleted")
 		return
 	}
 
-	_, ok = setStorage["Misu"]
-	if ok {
+	_, err = db.GetSet("Tira")
+	if err == nil {
 		t.Error("Set Storage Key 'Misu' was not deleted")
 		return
 	}
@@ -340,7 +323,7 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 	}
 
 	// when
-	result := del(args)
+	result := del(request(DEL, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -348,10 +331,8 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 
 func Test_get(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-	setStorage["Tira"] = "Misu"
+	db := defaultDb()
+	db.SaveSet(resp.Value{}, "Tira", "Misu")
 
 	args := []resp.Value{
 		{
@@ -372,13 +353,13 @@ func Test_get(t *testing.T) {
 	}
 
 	// when
-	result := get(args)
+	result := get(request(GET, args), defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := setStorage["Tira"]
-	if !ok {
+	value, err := db.GetSet("Tira")
+	if err != nil {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
 	}
@@ -387,10 +368,6 @@ func Test_get(t *testing.T) {
 
 func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -409,7 +386,7 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 	}
 
 	// when
-	result := get(args)
+	result := get(request(GET, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -417,10 +394,6 @@ func Test_getCanOnlyReceiveOneArg(t *testing.T) {
 
 func Test_getNoValueAvailable(t *testing.T) {
 	// given
-	for k := range setStorage {
-		delete(setStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -439,7 +412,7 @@ func Test_getNoValueAvailable(t *testing.T) {
 	}
 
 	// when
-	result := get(args)
+	result := get(request(GET, args), defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -447,9 +420,6 @@ func Test_getNoValueAvailable(t *testing.T) {
 
 func Test_hset(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -476,15 +446,22 @@ func Test_hset(t *testing.T) {
 		return
 	}
 
+	db := defaultDb()
+
 	// when
-	result := hset(args)
+	result := hset(request(HSET, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := hsetStorage["tira"]["misu"]
+	valueMap, err := db.GetHSet("tira")
+	if err != nil {
+		t.Error("HSet Storage did not contain hash 'tira'")
+		return
+	}
+	value, ok := valueMap["misu"]
 	if !ok {
-		t.Error("HSet Storage did not contain hash 'tira' or key 'misu'")
+		t.Error("HSet Storage did not contain key 'misu'")
 		return
 	}
 	assert.Equal(t, "cute", value)
@@ -492,10 +469,6 @@ func Test_hset(t *testing.T) {
 
 func Test_hsetNeedsThreeArgs(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -510,7 +483,7 @@ func Test_hsetNeedsThreeArgs(t *testing.T) {
 	}
 
 	// when
-	result := hset(args)
+	result := hset(request(HSET, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -518,12 +491,8 @@ func Test_hsetNeedsThreeArgs(t *testing.T) {
 
 func Test_hget(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-
-	hsetStorage["tira"] = map[string]string{}
-	hsetStorage["tira"]["misu"] = "cute"
+	db := defaultDb()
+	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
 
 	args := []resp.Value{
 		{
@@ -548,25 +517,27 @@ func Test_hget(t *testing.T) {
 	}
 
 	// when
-	result := hget(args)
+	result := hget(request(HGET, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, ok := hsetStorage["tira"]["misu"]
-	if !ok {
-		t.Error("HSet Storage did not contain hash 'tira' or key 'misu'")
+	valueMap, err := db.GetHSet("tira")
+	if err != nil {
+		t.Error("HSet Storage did not contain hash 'tira'")
 		return
 	}
+	value, ok := valueMap["misu"]
+	if !ok {
+		t.Error("HSet Storage did not contain key 'misu'")
+		return
+	}
+
 	assert.Equal(t, "cute", value)
 }
 
 func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -581,7 +552,7 @@ func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
 	}
 
 	// when
-	result := hget(args)
+	result := hget(request(HGET, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -589,10 +560,6 @@ func Test_hgetCanOnlyReceiveTwoArg(t *testing.T) {
 
 func Test_hgetNoValueAvailable(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-
 	args := []resp.Value{
 		{
 			Typ:  resp.BULK.Typ,
@@ -615,7 +582,7 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 	}
 
 	// when
-	result := hget(args)
+	result := hget(request(HGET, args), defaultDb())
 
 	// then
 	assert.EqualValues(t, expected, result)
@@ -623,12 +590,9 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 
 func Test_hdel(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-	hsetStorage["tira"] = map[string]string{}
-	hsetStorage["tira"]["misu"] = "cute"
-	hsetStorage["tira"]["void"] = "scary"
+	db := defaultDb()
+	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHSet(resp.Value{}, "tira", "void", "scary")
 
 	args := []resp.Value{
 		// hash
@@ -655,18 +619,24 @@ func Test_hdel(t *testing.T) {
 	}
 
 	// when
-	result := hdel(args)
+	result := hdel(request(HDEL, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, ok = hsetStorage["tira"]["misu"]
+	valueMap, err := db.GetHSet("tira")
+	if err == nil {
+		t.Error("HSet Storage did get hash 'tira' deleted")
+		return
+	}
+
+	_, ok = valueMap["misu"]
 	if ok {
 		t.Error("HSet Storage did not get key 'misu' deleted")
 		return
 	}
 
-	value, ok := hsetStorage["tira"]["void"]
+	value, ok := valueMap["void"]
 	if !ok {
 		t.Error("HSet Storage did get key 'void' deleted but wasn't supposed to")
 		return
@@ -676,11 +646,8 @@ func Test_hdel(t *testing.T) {
 
 func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-	hsetStorage["tira"] = map[string]string{}
-	hsetStorage["tira"]["misu"] = "cute"
+	db := defaultDb()
+	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
 
 	args := []resp.Value{
 		// hash
@@ -707,13 +674,13 @@ func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 	}
 
 	// when
-	result := hdel(args)
+	result := hdel(request(HDEL, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, ok = hsetStorage["tira"]
-	if ok {
+	_, err := db.GetHSet("tira")
+	if err == nil {
 		t.Error("HSet Storage did not get hash 'tira' deleted")
 		return
 	}
@@ -721,13 +688,10 @@ func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 
 func Test_hdel_deleteMultipleFields(t *testing.T) {
 	// given
-	for k := range hsetStorage {
-		delete(hsetStorage, k)
-	}
-	hsetStorage["tira"] = map[string]string{}
-	hsetStorage["tira"]["misu"] = "cute"
-	hsetStorage["tira"]["void"] = "scary"
-	hsetStorage["tira"]["isSpider"] = "yes"
+	db := defaultDb()
+	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHSet(resp.Value{}, "tira", "void", "scary")
+	db.SaveHSet(resp.Value{}, "tira", "isSpider", "true")
 
 	args := []resp.Value{
 		// hash
@@ -759,29 +723,35 @@ func Test_hdel_deleteMultipleFields(t *testing.T) {
 	}
 
 	// when
-	result := hdel(args)
+	result := hdel(request(HDEL, args), db)
 
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, ok = hsetStorage["tira"]["misu"]
+	valueMap, err := db.GetHSet("tira")
+	if err != nil {
+		t.Error("Hash 'tira' got deleted but wasnt supposed to")
+		return
+	}
+
+	_, ok = valueMap["misu"]
 	if ok {
 		t.Error("HSet Storage did not get key 'misu' deleted")
 		return
 	}
 
-	_, ok = hsetStorage["tira"]["void"]
+	_, ok = valueMap["void"]
 	if ok {
 		t.Error("HSet Storage did not get key 'void' deleted")
 		return
 	}
 
-	value, ok := hsetStorage["tira"]["isSpider"]
+	value, ok := valueMap["isSpider"]
 	if !ok {
 		t.Error("HSet Storage did get key 'isSpider' deleted but wasn't supposed to")
 		return
 	}
-	assert.Equal(t, value, "yes")
+	assert.Equal(t, value, "true")
 }
 
 func Test_hdel_needsAtLeastTwoArgs(t *testing.T) {
@@ -801,7 +771,7 @@ func Test_hdel_needsAtLeastTwoArgs(t *testing.T) {
 	}
 
 	// when
-	result := hdel(args)
+	result := hdel(request(HDEL, args), defaultDb())
 
 	// then
 	assert.Equal(t, "error", result.Typ)
@@ -1163,7 +1133,7 @@ func Test_command_returnsSpecs(t *testing.T) {
 	}
 
 	// when
-	result := commandSpecs([]resp.Value{})
+	result := commandSpecs(request(COMMAND, []resp.Value{}), defaultDb())
 
 	// then
 	assert.ElementsMatch(t, result.Array, expected)
@@ -1219,7 +1189,7 @@ func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
 	}
 
 	// when
-	result := commandSpecs(args)
+	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
 	assert.ElementsMatch(t, result.Array, expected)
@@ -1461,7 +1431,7 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 	}
 
 	// when
-	result := commandSpecs(args)
+	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
 	assert.Equal(t, result.Array, expected)
@@ -1510,8 +1480,43 @@ func Test_commandDocs_withFilter_caseInsensitive_returnsDocsOfFilter(t *testing.
 	}
 
 	// when
-	result := commandSpecs(args)
+	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
 	assert.Equal(t, result.Array, expected)
+}
+
+func request(command string, args []resp.Value) resp.Value {
+	request := resp.Value{
+		Typ: resp.ARRAY.Typ,
+		Array: []resp.Value{
+			{
+				Typ:  resp.BULK.Typ,
+				Bulk: command,
+			},
+		},
+	}
+	request.Array = append(request.Array, args...)
+
+	return request
+}
+
+func defaultDb() persistence.Database {
+	return persistence.NewDatabase(
+		ignoreDisk{},
+	)
+}
+
+type ignoreDisk struct{}
+
+func (_ ignoreDisk) Save(resp.Value) error {
+	return nil
+}
+
+func (_ ignoreDisk) GetInit() ([]resp.Value, error) {
+	return nil, errors.New("Get init called but shouldnt be by the strategies")
+}
+
+func (_ ignoreDisk) Close() error {
+	return errors.New("Close called which it shouldnt be by the strategies")
 }

@@ -2,7 +2,6 @@ package command
 
 import (
 	"gocache/internal/core/resp"
-	"sync"
 )
 
 const (
@@ -43,11 +42,5 @@ var commandMetadatas = []commandMetadata{
 	hgetAll,
 	command,
 }
-
-var setStorage = map[string]string{}
-var setStorageMutex = sync.RWMutex{}
-
-var hsetStorage = map[string]map[string]string{}
-var hsetStorageMutex = sync.RWMutex{}
 
 var okResponse = resp.Value{Typ: resp.STRING.Typ, Str: "OK"}
