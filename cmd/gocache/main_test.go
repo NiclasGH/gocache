@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gocache/internal/command"
-	"gocache/internal/resp"
+	"gocache/internal/core/command"
+	"gocache/internal/core/resp"
 	"net"
 	"os"
 	"testing"

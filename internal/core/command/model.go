@@ -1,6 +1,6 @@
 package command
 
-import "gocache/internal/resp"
+import "gocache/internal/core/resp"
 
 type CommandStrategy = func([]resp.Value) resp.Value
 

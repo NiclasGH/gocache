@@ -2,7 +2,7 @@ package persistence
 
 import (
 	"bufio"
-	"gocache/internal/resp"
+	"gocache/internal/core/resp"
 	"io"
 	"os"
 	"sync"

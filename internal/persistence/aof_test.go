@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"gocache/internal/command"
-	"gocache/internal/resp"
+	"gocache/internal/core/command"
+	"gocache/internal/core/resp"
 
 	"github.com/stretchr/testify/assert"
 )

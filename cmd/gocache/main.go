@@ -1,10 +1,10 @@
 package main
 
 import (
-	"gocache/internal/command"
-	"gocache/internal/handler"
+	"gocache/internal/core/command"
+	"gocache/internal/core/resp"
+	"gocache/internal/infrastructure"
 	"gocache/internal/persistence"
-	"gocache/internal/resp"
 	"log"
 	"net"
 	"os"
@@ -47,7 +47,7 @@ func main() {
 
 		go func() {
 			defer connection.Close()
-			err := handler.HandleConnection(connection, database)
+			err := infrastructure.HandleConnection(connection, database)
 			if err != nil {
 				log.Println(err)
 			}

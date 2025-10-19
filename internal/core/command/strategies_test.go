@@ -1,7 +1,7 @@
 package command
 
 import (
-	"gocache/internal/resp"
+	"gocache/internal/core/resp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

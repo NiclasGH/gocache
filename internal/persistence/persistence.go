@@ -1,6 +1,6 @@
 package persistence
 
-import "gocache/internal/resp"
+import "gocache/internal/core/resp"
 
 type Database interface {
 	Initialize(func(resp.Value)) error
