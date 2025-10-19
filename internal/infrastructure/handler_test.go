@@ -131,17 +131,31 @@ func Test_handlesConnection_ping(t *testing.T) {
 }
 
 // Could be replaced with actual mocks
+// TODO apparently I have no test for this? lol
 type TestDatabase struct {
 	executedCommands []resp.Value
 }
 
-func (db TestDatabase) Initialize(func(resp.Value)) error {
-	return errors.New("Should never run this unmocked method Initialize()")
+func (db TestDatabase) GetInit() ([]resp.Value, error) {
+	return nil, errors.New("Should never run this unmocked method Initialize()")
 }
 func (db TestDatabase) Close() error {
 	return errors.New("Should never run this unmocked method Close()")
 }
-func (db TestDatabase) Save(value resp.Value) error {
+func (db TestDatabase) SaveSet(value resp.Value, _ string, _ string) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
+}
+
+func (db TestDatabase) GetSet(string) (string, error) {
+	return "", errors.New("Should never run this unmocked method GetSet()")
+}
+
+func (db TestDatabase) SaveHSet(value resp.Value, _ string, _ string, _ string) error {
+	db.executedCommands = append(db.executedCommands, value)
+	return nil
+}
+
+func (db TestDatabase) GetHSet(string) (map[string]string, error) {
+	return nil, errors.New("Should never run this unmocked method GetHSet()")
 }

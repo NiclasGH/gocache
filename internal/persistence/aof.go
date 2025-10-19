@@ -15,7 +15,7 @@ type Aof struct {
 	mutex  sync.Mutex
 }
 
-func NewAof(path string) (*Aof, error) {
+func newAof(path string) (*Aof, error) {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		return nil, err
@@ -40,13 +40,14 @@ func NewAof(path string) (*Aof, error) {
 	return aof, nil
 }
 
-func (aof *Aof) Initialize(fn func(resp.Value)) error {
+func (aof *Aof) GetInit() ([]resp.Value, error) {
 	aof.mutex.Lock()
 	defer aof.mutex.Unlock()
 
 	// move current file buffer to start
 	aof.file.Seek(0, io.SeekStart)
 
+	var values []resp.Value
 	reader := resp.NewReader(aof.file)
 
 	for {
@@ -56,13 +57,13 @@ func (aof *Aof) Initialize(fn func(resp.Value)) error {
 				break
 			}
 
-			return err
+			return nil, err
 		}
 
-		fn(value)
+		values = append(values, value)
 	}
 
-	return nil
+	return values, nil
 }
 
 func (aof *Aof) Save(value resp.Value) error {

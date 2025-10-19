@@ -46,8 +46,9 @@ func HandleConnection(connection net.Conn, database persistence.Database) error 
 		}
 
 		result := command(value.Array[1:])
+		// TODO move into command
 		if changedDatabase(result, commandName) {
-			database.Save(value)
+			// database.Save(value)
 		}
 
 		writer.Write(result)

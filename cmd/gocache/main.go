@@ -1,14 +1,11 @@
 package main
 
 import (
-	"gocache/internal/core/command"
-	"gocache/internal/core/resp"
 	"gocache/internal/infrastructure"
 	"gocache/internal/persistence"
 	"log"
 	"net"
 	"os"
-	"strings"
 )
 
 var ready chan struct{}
@@ -32,6 +29,7 @@ func main() {
 		log.Println(err)
 		os.Exit(1)
 	}
+	defer database.Close()
 
 	if ready != nil {
 		close(ready)
@@ -61,26 +59,10 @@ func initializeDatabase() (persistence.Database, error) {
 		databasePath = "database.aof"
 	}
 
-	aof, err := persistence.NewAof(databasePath)
+	database, err := persistence.NewDatabase(databasePath)
 	if err != nil {
 		return nil, err
 	}
 
-	err = aof.Initialize(func(value resp.Value) {
-		commandName := strings.ToUpper(value.Array[0].Bulk)
-		args := value.Array[1:]
-
-		command, ok := command.Strategies[commandName]
-		if !ok {
-			return
-		}
-
-		command(args)
-	})
-	if err != nil {
-		aof.Close()
-		return nil, err
-	}
-
-	return aof, nil
+	return database, nil
 }
