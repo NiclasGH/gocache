@@ -14,6 +14,10 @@ func newExpiration(now time.Time, expireDuration time.Duration) *Expirationable 
 	}
 }
 
+func (e *Expirationable) isExpired(now time.Time) bool {
+	return now.After(e.ExpiresAt)
+}
+
 type StringEntity struct {
 	Value      string
 	Expiration *Expirationable
@@ -45,5 +49,5 @@ func (s *StringEntity) IsExpired() bool {
 		return false
 	}
 
-	return time.Now().UTC().After(s.Expiration.ExpiresAt)
+	return s.Expiration.isExpired(time.Now().UTC())
 }
