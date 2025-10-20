@@ -19,7 +19,6 @@ func ExpireRandomKeys(amountOfKeys int, db persistence.Database) {
 			break
 		}
 
-		log.Println("Checking key: " + k)
 		if v.IsExpired() {
 			log.Println("Key is expired: " + k)
 			db.DeleteAllStrings(delRequest(k), []string{k})
