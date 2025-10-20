@@ -220,6 +220,50 @@ func Test_incr(t *testing.T) {
 	assert.Equal(t, "6", value.Value)
 }
 
+func Test_incr_doesNotOverrideExpiration(t *testing.T) {
+	// given
+	db := defaultDb()
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("5", time.Second*60))
+
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+	}
+
+	expectedExpiration := time.Now().UTC().Add(time.Second * 60)
+
+	expected := resp.Value{
+		Typ: "integer",
+		Num: 6,
+	}
+
+	incr, ok := Strategies[INCR]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	// when
+	result := incr(request(INCR, args), db)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	value, err := db.GetString("Tira")
+	if err != nil {
+		t.Error("Set Storage Key 'Tira' does not exist")
+		return
+	}
+	assert.Equal(t, "6", value.Value)
+	assert.True(t, isCloseToTimestamp(
+		value.Expiration.ExpiresAt,
+		expectedExpiration,
+		time.Second,
+	))
+}
+
 func Test_incr_needsOneArg(t *testing.T) {
 	// given
 	args := []resp.Value{}

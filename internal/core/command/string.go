@@ -5,6 +5,7 @@ import (
 	"gocache/internal/persistence"
 	"log"
 	"strconv"
+	"time"
 )
 
 // / Saves a value at a specific key
@@ -15,14 +16,46 @@ import (
 func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 	args := request.GetArgs()
 
-	if len(args) != 2 {
+	if len(args) < 2 {
 		return resp.Value{Typ: "error", Str: "ERR wrong number of arguments for 'set' command"}
 	}
 
 	key := args[0].Bulk
 	value := args[1].Bulk
 
-	err := db.SaveString(request, key, persistence.NewString(value, 0))
+	extraArgs := args[2:]
+	expiration := time.Duration(0)
+	// We dont check the last one, because we will still need a parameter
+	for i := 0; i < len(extraArgs)-1; i++ {
+		v := extraArgs[i]
+
+		if v.Typ != resp.BULK.Typ {
+			continue
+		}
+		var unit time.Duration
+		switch v.Bulk {
+		case "EX":
+			unit = time.Second
+		case "PX":
+			unit = time.Millisecond
+		default:
+			continue
+		}
+
+		expire := extraArgs[i+1]
+		if expire.Typ != resp.INTEGER.Typ {
+			return resp.Value{Typ: "error", Str: "EX/PX parameter needs to be a number"}
+		}
+
+		expiration = unit * time.Duration(expire.Num)
+		break
+	}
+
+	// for remainingArgs:
+	// if remainingArg is known EX or PX
+	// take next arg and use time.Second or time.Millisecond
+
+	err := db.SaveString(request, key, persistence.NewString(value, expiration))
 	if err != nil {
 		return resp.Value{Typ: "error", Str: err.Error()}
 	}
