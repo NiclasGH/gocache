@@ -137,30 +137,30 @@ func (db testDatabase) EnablePersistence(persistence.DiskPersistence) {}
 func (db testDatabase) Close() error {
 	return errors.New("Should never run this unmocked method Close()")
 }
-func (db testDatabase) SaveSet(value resp.Value, _ string, _ string) error {
+func (db testDatabase) SaveString(value resp.Value, _ string, _ string) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
 }
 
-func (db testDatabase) DeleteAllSet(value resp.Value, _ []string) (int, error) {
+func (db testDatabase) DeleteAllStrings(value resp.Value, _ []string) (int, error) {
 	db.executedCommands = append(db.executedCommands, value)
 	return 1, nil
 }
 
-func (db testDatabase) DeleteAllHSet(value resp.Value, _ string, _ []string) (int, error) {
+func (db testDatabase) DeleteAllHashKeys(value resp.Value, _ string, _ []string) (int, error) {
 	db.executedCommands = append(db.executedCommands, value)
 	return 1, nil
 }
 
-func (db testDatabase) GetSet(string) (string, error) {
+func (db testDatabase) GetString(string) (string, error) {
 	return "", errors.New("Should never run this unmocked method GetSet()")
 }
 
-func (db testDatabase) SaveHSet(value resp.Value, _ string, _ string, _ string) error {
+func (db testDatabase) SaveHash(value resp.Value, _ string, _ string, _ string) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
 }
 
-func (db testDatabase) GetHSet(string) (map[string]string, error) {
+func (db testDatabase) GetHash(string) (map[string]string, error) {
 	return nil, errors.New("Should never run this unmocked method GetHSet()")
 }

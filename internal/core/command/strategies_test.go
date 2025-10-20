@@ -83,7 +83,7 @@ func Test_set(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, err := db.GetSet("Tira")
+	value, err := db.GetString("Tira")
 	if err != nil {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
@@ -116,7 +116,7 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 func Test_incr(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveSet(resp.Value{}, "Tira", "5")
+	db.SaveString(resp.Value{}, "Tira", "5")
 
 	args := []resp.Value{
 		{
@@ -142,7 +142,7 @@ func Test_incr(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, err := db.GetSet("Tira")
+	value, err := db.GetString("Tira")
 	if err != nil {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
@@ -170,7 +170,7 @@ func Test_incr_needsOneArg(t *testing.T) {
 func Test_incr_needsStringToBeNumber(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveSet(resp.Value{}, "Tira", "number")
+	db.SaveString(resp.Value{}, "Tira", "number")
 
 	args := []resp.Value{
 		{
@@ -220,7 +220,7 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, err := db.GetSet("Tira")
+	value, err := db.GetString("Tira")
 	if err != nil {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
@@ -231,7 +231,7 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 func Test_del(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveSet(resp.Value{}, "Tira", "Misu")
+	db.SaveString(resp.Value{}, "Tira", "Misu")
 
 	args := []resp.Value{
 		{
@@ -257,7 +257,7 @@ func Test_del(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, err := db.GetSet("Tira")
+	_, err := db.GetString("Tira")
 	if err == nil {
 		t.Error("Set Storage Key 'Tira' was not deleted")
 		return
@@ -267,8 +267,8 @@ func Test_del(t *testing.T) {
 func Test_del_multipleKeys(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveSet(resp.Value{}, "Tira", "Misu")
-	db.SaveSet(resp.Value{}, "Misu", "Tira")
+	db.SaveString(resp.Value{}, "Tira", "Misu")
+	db.SaveString(resp.Value{}, "Misu", "Tira")
 
 	args := []resp.Value{
 		{
@@ -298,13 +298,13 @@ func Test_del_multipleKeys(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, err := db.GetSet("Tira")
+	_, err := db.GetString("Tira")
 	if err == nil {
 		t.Error("Set Storage Key 'Tira' was not deleted")
 		return
 	}
 
-	_, err = db.GetSet("Tira")
+	_, err = db.GetString("Tira")
 	if err == nil {
 		t.Error("Set Storage Key 'Misu' was not deleted")
 		return
@@ -331,7 +331,7 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 func Test_get(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveSet(resp.Value{}, "Tira", "Misu")
+	db.SaveString(resp.Value{}, "Tira", "Misu")
 
 	args := []resp.Value{
 		{
@@ -357,7 +357,7 @@ func Test_get(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	value, err := db.GetSet("Tira")
+	value, err := db.GetString("Tira")
 	if err != nil {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
@@ -453,7 +453,7 @@ func Test_hset(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	valueMap, err := db.GetHSet("tira")
+	valueMap, err := db.GetHash("tira")
 	if err != nil {
 		t.Error("HSet Storage did not contain hash 'tira'")
 		return
@@ -491,7 +491,7 @@ func Test_hsetNeedsThreeArgs(t *testing.T) {
 func Test_hget(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHash(resp.Value{}, "tira", "misu", "cute")
 
 	args := []resp.Value{
 		{
@@ -521,7 +521,7 @@ func Test_hget(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	valueMap, err := db.GetHSet("tira")
+	valueMap, err := db.GetHash("tira")
 	if err != nil {
 		t.Error("HSet Storage did not contain hash 'tira'")
 		return
@@ -590,8 +590,8 @@ func Test_hgetNoValueAvailable(t *testing.T) {
 func Test_hdel(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
-	db.SaveHSet(resp.Value{}, "tira", "void", "scary")
+	db.SaveHash(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHash(resp.Value{}, "tira", "void", "scary")
 
 	args := []resp.Value{
 		// hash
@@ -623,7 +623,7 @@ func Test_hdel(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	valueMap, err := db.GetHSet("tira")
+	valueMap, err := db.GetHash("tira")
 	if err != nil {
 		t.Error("HSet Storage did get hash 'tira' deleted")
 		return
@@ -646,7 +646,7 @@ func Test_hdel(t *testing.T) {
 func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHash(resp.Value{}, "tira", "misu", "cute")
 
 	args := []resp.Value{
 		// hash
@@ -678,7 +678,7 @@ func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	_, err := db.GetHSet("tira")
+	_, err := db.GetHash("tira")
 	if err == nil {
 		t.Error("HSet Storage did not get hash 'tira' deleted")
 		return
@@ -688,9 +688,9 @@ func Test_hdel_lastKeyDeletesHash(t *testing.T) {
 func Test_hdel_deleteMultipleFields(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveHSet(resp.Value{}, "tira", "misu", "cute")
-	db.SaveHSet(resp.Value{}, "tira", "void", "scary")
-	db.SaveHSet(resp.Value{}, "tira", "isSpider", "true")
+	db.SaveHash(resp.Value{}, "tira", "misu", "cute")
+	db.SaveHash(resp.Value{}, "tira", "void", "scary")
+	db.SaveHash(resp.Value{}, "tira", "isSpider", "true")
 
 	args := []resp.Value{
 		// hash
@@ -727,7 +727,7 @@ func Test_hdel_deleteMultipleFields(t *testing.T) {
 	// then
 	assert.EqualValues(t, expected, result)
 
-	valueMap, err := db.GetHSet("tira")
+	valueMap, err := db.GetHash("tira")
 	if err != nil {
 		t.Error("Hash 'tira' got deleted but wasnt supposed to")
 		return

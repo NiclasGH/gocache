@@ -38,7 +38,7 @@ func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[0].Bulk
 	value := args[1].Bulk
 
-	err := db.SaveSet(request, key, value)
+	err := db.SaveString(request, key, value)
 	if err != nil {
 		return resp.Value{Typ: "error", Str: err.Error()}
 	}
@@ -60,7 +60,7 @@ func getStrategy(request resp.Value, db persistence.Database) resp.Value {
 
 	key := args[0].Bulk
 
-	value, err := db.GetSet(key)
+	value, err := db.GetString(key)
 	if err != nil {
 		log.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
@@ -90,7 +90,7 @@ func delStrategy(request resp.Value, db persistence.Database) resp.Value {
 		keys = append(keys, key.Bulk)
 	}
 
-	amountDeleted, err := db.DeleteAllSet(request, keys)
+	amountDeleted, err := db.DeleteAllStrings(request, keys)
 	if err != nil {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
 	}
@@ -112,7 +112,7 @@ func incrStrategy(request resp.Value, db persistence.Database) resp.Value {
 
 	key := args[0].Bulk
 
-	value, err := db.GetSet(key)
+	value, err := db.GetString(key)
 	if err != nil {
 		value = "0"
 	}
@@ -123,7 +123,7 @@ func incrStrategy(request resp.Value, db persistence.Database) resp.Value {
 	}
 
 	savedNumber += 1
-	if err = db.SaveSet(request, key, strconv.Itoa(savedNumber)); err != nil {
+	if err = db.SaveString(request, key, strconv.Itoa(savedNumber)); err != nil {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
 	}
 
@@ -146,7 +146,7 @@ func hsetStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[1].Bulk
 	value := args[2].Bulk
 
-	if err := db.SaveHSet(request, hash, key, value); err != nil {
+	if err := db.SaveHash(request, hash, key, value); err != nil {
 		return resp.Value{Typ: "error", Str: err.Error()}
 	}
 
@@ -168,7 +168,7 @@ func hgetStrategy(request resp.Value, db persistence.Database) resp.Value {
 	hash := args[0].Bulk
 	key := args[1].Bulk
 
-	mapValue, err := db.GetHSet(hash)
+	mapValue, err := db.GetHash(hash)
 	if err != nil {
 		log.Printf("Did not find any value with hash %s\n", hash)
 		return resp.Value{Typ: "null"}
@@ -205,7 +205,7 @@ func hdelStrategy(request resp.Value, db persistence.Database) resp.Value {
 		keys = append(keys, key.Bulk)
 	}
 
-	amountDeleted, err := db.DeleteAllHSet(request, hashKey, keys)
+	amountDeleted, err := db.DeleteAllHashKeys(request, hashKey, keys)
 	if err != nil {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
 	}
@@ -229,7 +229,7 @@ func hgetAllStrategy(request resp.Value, db persistence.Database) resp.Value {
 
 	hash := args[0].Bulk
 
-	value, err := db.GetHSet(hash)
+	value, err := db.GetHash(hash)
 
 	if err != nil {
 		log.Println(err.Error())

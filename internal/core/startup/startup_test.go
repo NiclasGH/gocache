@@ -46,7 +46,7 @@ func Test_startup_repeatsSet(t *testing.T) {
 		return
 	}
 
-	value, err := db.GetSet(key)
+	value, err := db.GetString(key)
 	if err != nil {
 		t.Error("Value was not set")
 	}
@@ -95,7 +95,7 @@ func Test_startup_repeatsHSet(t *testing.T) {
 		return
 	}
 
-	value, err := db.GetHSet(hash)
+	value, err := db.GetHash(hash)
 	if err != nil {
 		t.Error("Value was not set")
 	}
@@ -152,7 +152,7 @@ func Test_startup_repeatsDel(t *testing.T) {
 		return
 	}
 
-	_, err = db.GetSet(key)
+	_, err = db.GetString(key)
 	if err == nil {
 		t.Error("Value was not deleted")
 	}

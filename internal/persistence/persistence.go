@@ -5,13 +5,13 @@ import (
 )
 
 type Database interface {
-	SaveSet(request resp.Value, key string, value string) error
-	DeleteAllSet(request resp.Value, keys []string) (int, error)
-	GetSet(key string) (string, error)
+	SaveString(request resp.Value, key string, value string) error
+	DeleteAllStrings(request resp.Value, keys []string) (int, error)
+	GetString(key string) (string, error)
 
-	SaveHSet(request resp.Value, hash string, key string, value string) error
-	DeleteAllHSet(request resp.Value, hash string, keys []string) (int, error)
-	GetHSet(hash string) (map[string]string, error)
+	SaveHash(request resp.Value, hash string, key string, value string) error
+	DeleteAllHashKeys(request resp.Value, hash string, keys []string) (int, error)
+	GetHash(hash string) (map[string]string, error)
 
 	EnablePersistence(diskPersistence DiskPersistence)
 
