@@ -16,5 +16,5 @@ func Test_expirationCalculation(t *testing.T) {
 	expiration := newExpiration(now, time.Minute)
 
 	// then
-	assert.Equal(t, in60Seconds, expiration.expiresAt)
+	assert.Equal(t, in60Seconds, expiration.ExpiresAt)
 }

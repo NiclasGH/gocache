@@ -11,14 +11,14 @@ type Typ struct {
 
 var (
 	// rd/wrt
-	BULK  = Typ{RespCode: '$', Typ: "bulk"}
-	ARRAY = Typ{RespCode: '*', Typ: "array"}
+	BULK    = Typ{RespCode: '$', Typ: "bulk"}
+	ARRAY   = Typ{RespCode: '*', Typ: "array"}
+	INTEGER = Typ{RespCode: ':', Typ: "integer"}
 
 	// wrt only
-	NULL    = Typ{RespCode: '$', Typ: "null"}
-	INTEGER = Typ{RespCode: ':', Typ: "integer"}
-	STRING  = Typ{RespCode: '+', Typ: "string"}
-	ERROR   = Typ{RespCode: '-', Typ: "error"}
+	NULL   = Typ{RespCode: '$', Typ: "null"}
+	STRING = Typ{RespCode: '+', Typ: "string"}
+	ERROR  = Typ{RespCode: '-', Typ: "error"}
 )
 
 // This can be improved using union types, which go currently do not support

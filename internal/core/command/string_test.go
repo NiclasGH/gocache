@@ -4,6 +4,7 @@ import (
 	"gocache/internal/core/resp"
 	"gocache/internal/persistence"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -46,6 +47,118 @@ func Test_set(t *testing.T) {
 		return
 	}
 	assert.Equal(t, "Misu", value.Value)
+}
+
+func Test_setWithSecondsExpiration(t *testing.T) {
+	// given
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Misu",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "EX",
+		},
+		{
+			Typ: resp.INTEGER.Typ,
+			Num: 60,
+		},
+	}
+
+	expectedTime := time.Now().UTC().Add(time.Second * 60)
+
+	expected := resp.Value{
+		Typ: "string",
+		Str: "OK",
+	}
+
+	set, ok := Strategies[SET]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	db := defaultDb()
+
+	// when
+	result := set(request(SET, args), db)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	value, err := db.GetString("Tira")
+	if err != nil {
+		t.Error("Set Storage did not contain key 'Tira'")
+		return
+	}
+	assert.Equal(t, "Misu", value.Value)
+	assert.NotNil(t, value.Expiration)
+	assert.True(t, isCloseToTimestamp(
+		value.Expiration.ExpiresAt,
+		expectedTime,
+		time.Second,
+	))
+}
+
+func Test_setWithMillisecondsExpiration(t *testing.T) {
+	// given
+	args := []resp.Value{
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Tira",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "Misu",
+		},
+		{
+			Typ:  resp.BULK.Typ,
+			Bulk: "PX",
+		},
+		{
+			Typ: resp.INTEGER.Typ,
+			Num: 60000,
+		},
+	}
+
+	expectedTime := time.Now().UTC().Add(time.Second * 60)
+
+	expected := resp.Value{
+		Typ: "string",
+		Str: "OK",
+	}
+
+	set, ok := Strategies[SET]
+	if !ok {
+		t.Error("Command does not exist")
+		return
+	}
+
+	db := defaultDb()
+
+	// when
+	result := set(request(SET, args), db)
+
+	// then
+	assert.EqualValues(t, expected, result)
+
+	value, err := db.GetString("Tira")
+	if err != nil {
+		t.Error("Set Storage did not contain key 'Tira'")
+		return
+	}
+	assert.Equal(t, "Misu", value.Value)
+	assert.NotNil(t, value.Expiration)
+	assert.True(t, isCloseToTimestamp(
+		value.Expiration.ExpiresAt,
+		expectedTime,
+		time.Second,
+	))
 }
 
 func Test_setNeedsTwoArgs(t *testing.T) {
