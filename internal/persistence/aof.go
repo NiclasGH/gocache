@@ -40,7 +40,7 @@ func NewAof(path string) (*Aof, error) {
 	return aof, nil
 }
 
-func (aof *Aof) GetInit() ([]resp.Value, error) {
+func (aof *Aof) ReadPersistedCommands() ([]resp.Value, error) {
 	aof.mutex.Lock()
 	defer aof.mutex.Unlock()
 

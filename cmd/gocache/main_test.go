@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gocache/internal/core/resp"
 	"net"
 	"os"
 	"testing"

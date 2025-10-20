@@ -97,7 +97,7 @@ func Test_initializeReturnsCommands(t *testing.T) {
 	}
 
 	// when
-	result, err := aof.GetInit()
+	result, err := aof.ReadPersistedCommands()
 	if err != nil {
 		t.Error(err)
 		return

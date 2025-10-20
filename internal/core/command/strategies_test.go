@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"gocache/internal/core/resp"
 	"gocache/internal/persistence"
 	"testing"
@@ -1502,21 +1501,5 @@ func request(command string, args []resp.Value) resp.Value {
 }
 
 func defaultDb() persistence.Database {
-	return persistence.NewDatabase(
-		ignoreDisk{},
-	)
-}
-
-type ignoreDisk struct{}
-
-func (_ ignoreDisk) Save(resp.Value) error {
-	return nil
-}
-
-func (_ ignoreDisk) GetInit() ([]resp.Value, error) {
-	return nil, errors.New("Get init called but shouldnt be by the strategies")
-}
-
-func (_ ignoreDisk) Close() error {
-	return errors.New("Close called which it shouldnt be by the strategies")
+	return persistence.NewDatabase(nil)
 }

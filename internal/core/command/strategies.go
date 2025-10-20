@@ -38,7 +38,10 @@ func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[0].Bulk
 	value := args[1].Bulk
 
-	db.SaveSet(request, key, value)
+	err := db.SaveSet(request, key, value)
+	if err != nil {
+		return resp.Value{Typ: "error", Str: err.Error()}
+	}
 
 	return okResponse
 }

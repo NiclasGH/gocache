@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gocache/internal/core/startup"
 	"gocache/internal/infrastructure"
 	"gocache/internal/persistence"
 	"log"
@@ -64,9 +65,9 @@ func initializeDatabase() (persistence.Database, error) {
 		return nil, err
 	}
 
-	database := persistence.NewDatabase(aof)
+	database := persistence.NewDatabase(nil)
 
-	// TODO call initiliazation use case
+	startup.ReplayCommands(aof, database)
 
 	return database, nil
 }

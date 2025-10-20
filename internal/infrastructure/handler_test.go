@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"errors"
 	"gocache/internal/core/resp"
+	"gocache/internal/persistence"
 	"net"
 	"strings"
 	"testing"
@@ -132,9 +133,7 @@ func defaultDb() testDatabase {
 	return testDatabase{[]resp.Value{}}
 }
 
-func (db testDatabase) GetInit() ([]resp.Value, error) {
-	return nil, errors.New("Should never run this unmocked method Initialize()")
-}
+func (db testDatabase) EnablePersistence(persistence.DiskPersistence) {}
 func (db testDatabase) Close() error {
 	return errors.New("Should never run this unmocked method Close()")
 }

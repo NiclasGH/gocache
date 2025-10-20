@@ -13,12 +13,13 @@ type Database interface {
 	DeleteAllHSet(request resp.Value, hash string, keys []string) int
 	GetHSet(hash string) (map[string]string, error)
 
-	GetInit() ([]resp.Value, error)
+	EnablePersistence(diskPersistence DiskPersistence)
+
 	Close() error
 }
 
-type diskPersistence interface {
+type DiskPersistence interface {
 	Save(resp.Value) error
-	GetInit() ([]resp.Value, error)
+	ReadPersistedCommands() ([]resp.Value, error)
 	Close() error
 }

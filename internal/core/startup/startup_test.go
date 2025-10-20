@@ -4,7 +4,6 @@ import (
 	"errors"
 	"gocache/internal/core/resp"
 	"gocache/internal/persistence"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,30 +16,29 @@ func Test_startup_repeatsSet(t *testing.T) {
 
 	request := []resp.Value{
 		{
-			Typ:  resp.BULK.Typ,
-			Bulk: "SET",
-		},
-		{
-			Typ:  resp.BULK.Typ,
-			Bulk: key,
-		},
-		{
-			Typ:  resp.BULK.Typ,
-			Bulk: expected,
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: "SET",
+				},
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: key,
+				},
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: expected,
+				},
+			},
 		},
 	}
 
-	file, err := os.CreateTemp("", "database.test.aof")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	defer os.Remove(file.Name())
-
-	db := defaultDb(request)
+	db := defaultDb()
+	disk := defaultDisk(request)
 
 	// when
-	err = StartupInit(db)
+	err := ReplayCommands(disk, db)
 
 	// then
 	if err != nil {
@@ -63,33 +61,33 @@ func Test_startup_repeatsHSet(t *testing.T) {
 
 	request := []resp.Value{
 		{
-			Typ:  resp.BULK.Typ,
-			Bulk: "HSET",
-		},
-		{
-			Typ:  resp.BULK.Typ,
-			Bulk: hash,
-		},
-		{
-			Typ:  resp.BULK.Typ,
-			Bulk: key,
-		},
-		{
-			Typ:  resp.BULK.Typ,
-			Bulk: expected,
+			Typ: resp.ARRAY.Typ,
+			Array: []resp.Value{
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: "HSET",
+				},
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: hash,
+				},
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: key,
+				},
+				{
+					Typ:  resp.BULK.Typ,
+					Bulk: expected,
+				},
+			},
 		},
 	}
-	file, err := os.CreateTemp("", "database.test.aof")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	defer os.Remove(file.Name())
 
-	db := defaultDb(request)
+	db := defaultDb()
+	disk := defaultDisk(request)
 
 	// when
-	err = StartupInit(db)
+	err := ReplayCommands(disk, db)
 
 	// then
 	if err != nil {
@@ -142,17 +140,11 @@ func Test_startup_repeatsDel(t *testing.T) {
 		},
 	}
 
-	file, err := os.CreateTemp("", "database.test.aof")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	defer os.Remove(file.Name())
-
-	db := defaultDb(request)
+	db := defaultDb()
+	disk := defaultDisk(request)
 
 	// when
-	err = StartupInit(db)
+	err := ReplayCommands(disk, db)
 
 	// then
 	if err != nil {
@@ -166,9 +158,12 @@ func Test_startup_repeatsDel(t *testing.T) {
 	}
 }
 
-func defaultDb(request []resp.Value) persistence.Database {
-	disk := simpleDisk{request}
-	return persistence.NewDatabase(disk)
+func defaultDb() persistence.Database {
+	return persistence.NewDatabase(nil)
+}
+
+func defaultDisk(request []resp.Value) persistence.DiskPersistence {
+	return simpleDisk{request}
 }
 
 type simpleDisk struct {
@@ -179,7 +174,7 @@ func (_ simpleDisk) Save(resp.Value) error {
 	return errors.New("Save called but shouldnt be by the startup")
 }
 
-func (d simpleDisk) GetInit() ([]resp.Value, error) {
+func (d simpleDisk) ReadPersistedCommands() ([]resp.Value, error) {
 	return d.request, nil
 }
 

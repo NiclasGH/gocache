@@ -20,10 +20,11 @@ type DatabaseImpl struct {
 	setStorage  setStorage
 	hsetStorage hsetStorage
 
-	diskPersistence diskPersistence
+	// could also be a list, to enable multiple forms of disk persistence (aof, snapshots etc)
+	diskPersistence DiskPersistence
 }
 
-func NewDatabase(diskPersistence diskPersistence) *DatabaseImpl {
+func NewDatabase(diskPersistence DiskPersistence) *DatabaseImpl {
 	return &DatabaseImpl{
 		setStorage: setStorage{
 			store: map[string]string{},
@@ -35,13 +36,20 @@ func NewDatabase(diskPersistence diskPersistence) *DatabaseImpl {
 		diskPersistence: diskPersistence,
 	}
 }
+func (db *DatabaseImpl) EnablePersistence(diskPersistence DiskPersistence) {
+	db.diskPersistence = diskPersistence
+}
 
 func (db *DatabaseImpl) SaveSet(requestValue resp.Value, key string, value string) error {
 	db.setStorage.mutex.Lock()
 	db.setStorage.store[key] = value
 	db.setStorage.mutex.Unlock()
 
-	return db.diskPersistence.Save(requestValue)
+	if db.diskPersistence != nil {
+		return db.diskPersistence.Save(requestValue)
+	}
+
+	return nil
 }
 
 func (db *DatabaseImpl) GetSet(key string) (string, error) {
@@ -68,6 +76,10 @@ func (db *DatabaseImpl) DeleteAllSet(requestValue resp.Value, keys []string) int
 		}
 	}
 
+	if db.diskPersistence != nil {
+		db.diskPersistence.Save(requestValue)
+	}
+
 	return amountDeleted
 }
 
@@ -79,7 +91,11 @@ func (db *DatabaseImpl) SaveHSet(requestValue resp.Value, hash string, key strin
 	db.hsetStorage.store[hash][key] = value
 	db.hsetStorage.mutex.Unlock()
 
-	return db.diskPersistence.Save(requestValue)
+	if db.diskPersistence != nil {
+		return db.diskPersistence.Save(requestValue)
+	}
+
+	return nil
 }
 
 func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys []string) int {
@@ -103,6 +119,10 @@ func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys
 		delete(db.hsetStorage.store, hash)
 	}
 
+	if db.diskPersistence != nil {
+		db.diskPersistence.Save(requestValue)
+	}
+
 	return amountDeleted
 }
 
@@ -116,10 +136,6 @@ func (db *DatabaseImpl) GetHSet(hash string) (map[string]string, error) {
 	}
 
 	return value, nil
-}
-
-func (db *DatabaseImpl) GetInit() ([]resp.Value, error) {
-	return db.diskPersistence.GetInit()
 }
 
 func (db *DatabaseImpl) Close() error {
