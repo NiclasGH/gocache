@@ -38,7 +38,7 @@ func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[0].Bulk
 	value := args[1].Bulk
 
-	err := db.SaveString(request, key, value)
+	err := db.SaveString(request, key, persistence.NewString(value, 0))
 	if err != nil {
 		return resp.Value{Typ: "error", Str: err.Error()}
 	}
@@ -66,7 +66,7 @@ func getStrategy(request resp.Value, db persistence.Database) resp.Value {
 		return resp.Value{Typ: "null"}
 	}
 
-	return resp.Value{Typ: "bulk", Bulk: value}
+	return resp.Value{Typ: "bulk", Bulk: value.Value}
 }
 
 // / Deletes values at specified keys
@@ -114,16 +114,17 @@ func incrStrategy(request resp.Value, db persistence.Database) resp.Value {
 
 	value, err := db.GetString(key)
 	if err != nil {
-		value = "0"
+		value = persistence.NewString("0", 0)
 	}
 
-	savedNumber, err := strconv.Atoi(value)
+	savedNumber, err := strconv.Atoi(value.Value)
 	if err != nil {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: "Value is not a number"}
 	}
 
 	savedNumber += 1
-	if err = db.SaveString(request, key, strconv.Itoa(savedNumber)); err != nil {
+	value.SetValue(strconv.Itoa(savedNumber))
+	if err = db.SaveString(request, key, value); err != nil {
 		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
 	}
 

@@ -88,7 +88,7 @@ func Test_set(t *testing.T) {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
 	}
-	assert.Equal(t, "Misu", value)
+	assert.Equal(t, "Misu", value.Value)
 }
 
 func Test_setNeedsTwoArgs(t *testing.T) {
@@ -116,7 +116,7 @@ func Test_setNeedsTwoArgs(t *testing.T) {
 func Test_incr(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveString(resp.Value{}, "Tira", "5")
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("5", 0))
 
 	args := []resp.Value{
 		{
@@ -147,7 +147,7 @@ func Test_incr(t *testing.T) {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
-	assert.Equal(t, "6", value)
+	assert.Equal(t, "6", value.Value)
 }
 
 func Test_incr_needsOneArg(t *testing.T) {
@@ -170,7 +170,7 @@ func Test_incr_needsOneArg(t *testing.T) {
 func Test_incr_needsStringToBeNumber(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveString(resp.Value{}, "Tira", "number")
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("number", 0))
 
 	args := []resp.Value{
 		{
@@ -225,13 +225,13 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
-	assert.Equal(t, "1", value)
+	assert.Equal(t, "1", value.Value)
 }
 
 func Test_del(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveString(resp.Value{}, "Tira", "Misu")
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("Misu", 0))
 
 	args := []resp.Value{
 		{
@@ -267,8 +267,8 @@ func Test_del(t *testing.T) {
 func Test_del_multipleKeys(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveString(resp.Value{}, "Tira", "Misu")
-	db.SaveString(resp.Value{}, "Misu", "Tira")
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("Misu", 0))
+	db.SaveString(resp.Value{}, "Misu", persistence.NewString("Tira", 0))
 
 	args := []resp.Value{
 		{
@@ -331,7 +331,7 @@ func Test_del_needsAtLeastOneKey(t *testing.T) {
 func Test_get(t *testing.T) {
 	// given
 	db := defaultDb()
-	db.SaveString(resp.Value{}, "Tira", "Misu")
+	db.SaveString(resp.Value{}, "Tira", persistence.NewString("Misu", 0))
 
 	args := []resp.Value{
 		{
@@ -362,7 +362,7 @@ func Test_get(t *testing.T) {
 		t.Error("Set Storage did not contain key 'Tira'")
 		return
 	}
-	assert.Equal(t, "Misu", value)
+	assert.Equal(t, "Misu", value.Value)
 }
 
 func Test_getCanOnlyReceiveOneArg(t *testing.T) {

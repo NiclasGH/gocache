@@ -50,7 +50,7 @@ func Test_startup_repeatsSet(t *testing.T) {
 	if err != nil {
 		t.Error("Value was not set")
 	}
-	assert.Equal(t, expected, value)
+	assert.Equal(t, expected, value.Value)
 }
 
 func Test_startup_repeatsHSet(t *testing.T) {
@@ -105,7 +105,7 @@ func Test_startup_repeatsHSet(t *testing.T) {
 func Test_startup_repeatsDel(t *testing.T) {
 	// given
 	key := "Tira"
-	expected := "Misu"
+	value := "Misu"
 
 	request := []resp.Value{
 		{
@@ -121,7 +121,7 @@ func Test_startup_repeatsDel(t *testing.T) {
 				},
 				{
 					Typ:  resp.BULK.Typ,
-					Bulk: expected,
+					Bulk: value,
 				},
 			},
 		},

@@ -7,7 +7,7 @@ import (
 )
 
 type stringStorage struct {
-	store map[string]string
+	store map[string]StringEntity
 	mutex sync.RWMutex
 }
 type hashStorage struct {
@@ -26,7 +26,7 @@ type DatabaseImpl struct {
 func NewDatabase(diskPersistence DiskPersistence) *DatabaseImpl {
 	return &DatabaseImpl{
 		stringStorage: stringStorage{
-			store: map[string]string{},
+			store: map[string]StringEntity{},
 		},
 		hashStorage: hashStorage{
 			store: map[string]map[string]string{},
@@ -39,7 +39,7 @@ func (db *DatabaseImpl) EnablePersistence(diskPersistence DiskPersistence) {
 	db.diskPersistence = diskPersistence
 }
 
-func (db *DatabaseImpl) SaveString(requestValue resp.Value, key string, value string) error {
+func (db *DatabaseImpl) SaveString(requestValue resp.Value, key string, value StringEntity) error {
 	db.stringStorage.mutex.Lock()
 	defer db.stringStorage.mutex.Unlock()
 
@@ -54,13 +54,13 @@ func (db *DatabaseImpl) SaveString(requestValue resp.Value, key string, value st
 	return nil
 }
 
-func (db *DatabaseImpl) GetString(key string) (string, error) {
+func (db *DatabaseImpl) GetString(key string) (StringEntity, error) {
 	db.stringStorage.mutex.RLock()
 	value, ok := db.stringStorage.store[key]
 	db.stringStorage.mutex.RUnlock()
 
 	if !ok {
-		return "", errors.New("No value with key: " + key)
+		return StringEntity{}, errors.New("No value with key: " + key)
 	}
 
 	return value, nil

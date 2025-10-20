@@ -5,9 +5,9 @@ import (
 )
 
 type Database interface {
-	SaveString(request resp.Value, key string, value string) error
+	SaveString(request resp.Value, key string, value StringEntity) error
 	DeleteAllStrings(request resp.Value, keys []string) (int, error)
-	GetString(key string) (string, error)
+	GetString(key string) (StringEntity, error)
 
 	SaveHash(request resp.Value, hash string, key string, value string) error
 	DeleteAllHashKeys(request resp.Value, hash string, keys []string) (int, error)

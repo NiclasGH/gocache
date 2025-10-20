@@ -137,7 +137,7 @@ func (db testDatabase) EnablePersistence(persistence.DiskPersistence) {}
 func (db testDatabase) Close() error {
 	return errors.New("Should never run this unmocked method Close()")
 }
-func (db testDatabase) SaveString(value resp.Value, _ string, _ string) error {
+func (db testDatabase) SaveString(value resp.Value, _ string, _ persistence.StringEntity) error {
 	db.executedCommands = append(db.executedCommands, value)
 	return nil
 }
@@ -152,8 +152,8 @@ func (db testDatabase) DeleteAllHashKeys(value resp.Value, _ string, _ []string)
 	return 1, nil
 }
 
-func (db testDatabase) GetString(string) (string, error) {
-	return "", errors.New("Should never run this unmocked method GetSet()")
+func (db testDatabase) GetString(string) (persistence.StringEntity, error) {
+	return persistence.StringEntity{}, errors.New("Should never run this unmocked method GetSet()")
 }
 
 func (db testDatabase) SaveHash(value resp.Value, _ string, _ string, _ string) error {
