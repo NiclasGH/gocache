@@ -142,6 +142,10 @@ func (db testDatabase) SaveString(value resp.Value, _ string, _ persistence.Stri
 	return nil
 }
 
+func (db testDatabase) GetRandomString() (string, persistence.StringEntity, bool) {
+	return "", persistence.StringEntity{}, false
+}
+
 func (db testDatabase) DeleteAllStrings(value resp.Value, _ []string) (int, error) {
 	db.executedCommands = append(db.executedCommands, value)
 	return 1, nil

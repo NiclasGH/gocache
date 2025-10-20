@@ -65,8 +65,8 @@ func Test_setWithSecondsExpiration(t *testing.T) {
 			Bulk: "EX",
 		},
 		{
-			Typ: resp.INTEGER.Typ,
-			Num: 60,
+			Typ:  resp.BULK.Typ,
+			Bulk: "60",
 		},
 	}
 
@@ -121,8 +121,8 @@ func Test_setWithMillisecondsExpiration(t *testing.T) {
 			Bulk: "PX",
 		},
 		{
-			Typ: resp.INTEGER.Typ,
-			Num: 60000,
+			Typ:  resp.BULK.Typ,
+			Bulk: "60000",
 		},
 	}
 

@@ -66,6 +66,16 @@ func (db *DatabaseImpl) GetString(key string) (StringEntity, error) {
 	return value, nil
 }
 
+func (db *DatabaseImpl) GetRandomString() (string, StringEntity, bool) {
+	db.stringStorage.mutex.RLock()
+	defer db.stringStorage.mutex.RUnlock()
+
+	for k, v := range db.stringStorage.store {
+		return k, v, true
+	}
+	return "", StringEntity{}, false
+}
+
 func (db *DatabaseImpl) DeleteAllStrings(requestValue resp.Value, keys []string) (int, error) {
 	db.stringStorage.mutex.Lock()
 	defer db.stringStorage.mutex.Unlock()

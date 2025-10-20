@@ -8,6 +8,8 @@ type Database interface {
 	SaveString(request resp.Value, key string, value StringEntity) error
 	DeleteAllStrings(request resp.Value, keys []string) (int, error)
 	GetString(key string) (StringEntity, error)
+	// expiration
+	GetRandomString() (string, StringEntity, bool)
 
 	SaveHash(request resp.Value, hash string, key string, value string) error
 	DeleteAllHashKeys(request resp.Value, hash string, keys []string) (int, error)

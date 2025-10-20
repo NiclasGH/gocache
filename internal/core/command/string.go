@@ -42,12 +42,13 @@ func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 			continue
 		}
 
-		expire := extraArgs[i+1]
-		if expire.Typ != resp.INTEGER.Typ {
-			return resp.Value{Typ: "error", Str: "EX/PX parameter needs to be a number"}
+		rawExpire := extraArgs[i+1]
+		expire, err := strconv.Atoi(rawExpire.Bulk)
+		if err != nil {
+			return resp.Value{Typ: resp.ERROR.Typ, Str: "EX/PX parameter needs to be a number"}
 		}
 
-		expiration = unit * time.Duration(expire.Num)
+		expiration = unit * time.Duration(expire)
 		break
 	}
 
@@ -78,7 +79,7 @@ func getStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[0].Bulk
 
 	value, err := db.GetString(key)
-	if err != nil {
+	if err != nil || value.IsExpired() {
 		log.Printf("Did not find any value with key %s\n", key)
 		return resp.Value{Typ: "null"}
 	}
@@ -130,7 +131,7 @@ func incrStrategy(request resp.Value, db persistence.Database) resp.Value {
 	key := args[0].Bulk
 
 	value, err := db.GetString(key)
-	if err != nil {
+	if err != nil || value.IsExpired() {
 		value = persistence.NewString("0", 0)
 	}
 

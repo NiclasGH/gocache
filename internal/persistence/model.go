@@ -1,6 +1,9 @@
 package persistence
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type Expirationable struct {
 	ExpiresAt time.Time
@@ -33,4 +36,11 @@ func (s *StringEntity) SetValue(value string) {
 
 func (s *StringEntity) SetExpiration(expireDuration time.Duration) {
 	s.Expiration = newExpiration(time.Now().UTC(), expireDuration)
+}
+
+func (s *StringEntity) IsExpired() bool {
+	log.Println(s)
+	result := s.Expiration.ExpiresAt.After(time.Now().UTC())
+	log.Println(time.Now().UTC())
+	return result
 }

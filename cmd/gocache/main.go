@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 )
 
 var ready chan struct{}
@@ -31,6 +32,8 @@ func main() {
 		os.Exit(1)
 	}
 	defer database.Close()
+
+	go infrastructure.ExpirationJob(time.Second, database)
 
 	if ready != nil {
 		close(ready)
