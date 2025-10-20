@@ -19,8 +19,9 @@ func Test_startup_repeatsSet(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				{
-					Typ:  resp.BULK.Typ,
-					Bulk: "SET",
+					Typ: resp.BULK.Typ,
+					// inconsistent cases to test that they dont matter
+					Bulk: "SeT",
 				},
 				{
 					Typ:  resp.BULK.Typ,
@@ -64,8 +65,9 @@ func Test_startup_repeatsHSet(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				{
-					Typ:  resp.BULK.Typ,
-					Bulk: "HSET",
+					Typ: resp.BULK.Typ,
+					// inconsistent cases to test that they dont matter
+					Bulk: "HSEt",
 				},
 				{
 					Typ:  resp.BULK.Typ,
@@ -112,8 +114,9 @@ func Test_startup_repeatsDel(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				{
-					Typ:  resp.BULK.Typ,
-					Bulk: "SET",
+					Typ: resp.BULK.Typ,
+					// inconsistent cases to test that they dont matter
+					Bulk: "SEt",
 				},
 				{
 					Typ:  resp.BULK.Typ,
@@ -129,8 +132,9 @@ func Test_startup_repeatsDel(t *testing.T) {
 			Typ: resp.ARRAY.Typ,
 			Array: []resp.Value{
 				{
-					Typ:  resp.BULK.Typ,
-					Bulk: "DEL",
+					Typ: resp.BULK.Typ,
+					// inconsistent cases to test that they dont matter
+					Bulk: "dEL",
 				},
 				{
 					Typ:  resp.BULK.Typ,

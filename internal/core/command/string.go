@@ -52,10 +52,6 @@ func setStrategy(request resp.Value, db persistence.Database) resp.Value {
 		break
 	}
 
-	// for remainingArgs:
-	// if remainingArg is known EX or PX
-	// take next arg and use time.Second or time.Millisecond
-
 	err := db.SaveString(request, key, persistence.NewString(value, expiration))
 	if err != nil {
 		return resp.Value{Typ: "error", Str: err.Error()}

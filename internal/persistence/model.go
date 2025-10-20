@@ -1,7 +1,6 @@
 package persistence
 
 import (
-	"log"
 	"time"
 )
 
@@ -9,21 +8,24 @@ type Expirationable struct {
 	ExpiresAt time.Time
 }
 
-func newExpiration(now time.Time, expireDuration time.Duration) Expirationable {
-	return Expirationable{
+func newExpiration(now time.Time, expireDuration time.Duration) *Expirationable {
+	return &Expirationable{
 		ExpiresAt: now.Add(expireDuration),
 	}
 }
 
 type StringEntity struct {
 	Value      string
-	Expiration Expirationable
+	Expiration *Expirationable
 }
 
 func NewString(value string, expireDuration time.Duration) StringEntity {
-	entity := StringEntity{Value: value}
+	entity := StringEntity{
+		Value:      value,
+		Expiration: nil,
+	}
 
-	if expireDuration <= 0 {
+	if expireDuration > 0 {
 		entity.Expiration = newExpiration(time.Now().UTC(), expireDuration)
 	}
 
@@ -39,8 +41,9 @@ func (s *StringEntity) SetExpiration(expireDuration time.Duration) {
 }
 
 func (s *StringEntity) IsExpired() bool {
-	log.Println(s)
-	result := s.Expiration.ExpiresAt.After(time.Now().UTC())
-	log.Println(time.Now().UTC())
-	return result
+	if s.Expiration == nil {
+		return false
+	}
+
+	return time.Now().UTC().After(s.Expiration.ExpiresAt)
 }

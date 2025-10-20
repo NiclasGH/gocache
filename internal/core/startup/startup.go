@@ -5,6 +5,7 @@ import (
 	"gocache/internal/core/command"
 	"gocache/internal/core/resp"
 	"gocache/internal/persistence"
+	"strings"
 )
 
 func ReplayCommands(disk persistence.DiskPersistence, db persistence.Database) error {
@@ -14,7 +15,7 @@ func ReplayCommands(disk persistence.DiskPersistence, db persistence.Database) e
 	}
 
 	for _, v := range commands {
-		name := v.Array[0].Bulk
+		name := strings.ToUpper(v.Array[0].Bulk)
 		strategy, ok := command.Strategies[name]
 		if !ok {
 			return errors.New("Command not found: " + name)
