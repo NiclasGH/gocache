@@ -18,7 +18,7 @@ func Test_writeBulk(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.EqualValues(t, result, expected)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeString(t *testing.T) {
@@ -33,7 +33,7 @@ func Test_writeString(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.EqualValues(t, result, expected)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeError(t *testing.T) {
@@ -48,7 +48,7 @@ func Test_writeError(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.EqualValues(t, result, expected)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeInteger(t *testing.T) {
@@ -63,7 +63,7 @@ func Test_writeInteger(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.EqualValues(t, result, expected)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeArray(t *testing.T) {
@@ -101,7 +101,7 @@ func Test_writeNull(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.EqualValues(t, result, expected)
+	assert.EqualValues(t, expected, result)
 }
 
 func Test_writeUnknown(t *testing.T) {
@@ -114,5 +114,5 @@ func Test_writeUnknown(t *testing.T) {
 	result := input.Marshal()
 
 	// then
-	assert.Equal(t, len(result), 0)
+	assert.Equal(t, 0, len(result))
 }

@@ -122,7 +122,7 @@ func Test_handlesConnection_ping(t *testing.T) {
 	res := string(buf[:length])
 
 	assert.Equal(t, expectedResponse, res)
-	assert.Equal(t, len(testDb.executedCommands), 0)
+	assert.Equal(t, 0, len(testDb.executedCommands))
 }
 
 type testDatabase struct {

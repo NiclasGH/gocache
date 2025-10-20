@@ -59,7 +59,7 @@ func Test_savePersistsCommand(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, string(result), expected)
+	assert.Equal(t, expected, string(result))
 }
 
 func Test_initializeReturnsCommands(t *testing.T) {
@@ -104,5 +104,5 @@ func Test_initializeReturnsCommands(t *testing.T) {
 	}
 
 	// then
-	assert.ElementsMatch(t, result, []resp.Value{request})
+	assert.ElementsMatch(t, []resp.Value{request}, result)
 }

@@ -147,7 +147,7 @@ func Test_incr(t *testing.T) {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
-	assert.Equal(t, value, "6")
+	assert.Equal(t, "6", value)
 }
 
 func Test_incr_needsOneArg(t *testing.T) {
@@ -164,7 +164,7 @@ func Test_incr_needsOneArg(t *testing.T) {
 	result := incr(request(INCR, args), defaultDb())
 
 	// then
-	assert.Equal(t, result.Typ, resp.ERROR.Typ)
+	assert.Equal(t, resp.ERROR.Typ, result.Typ)
 }
 
 func Test_incr_needsStringToBeNumber(t *testing.T) {
@@ -189,7 +189,7 @@ func Test_incr_needsStringToBeNumber(t *testing.T) {
 	result := incr(request(INCR, args), db)
 
 	// then
-	assert.Equal(t, result.Typ, resp.ERROR.Typ)
+	assert.Equal(t, resp.ERROR.Typ, result.Typ)
 }
 
 func Test_incr_createsKeyIfNotExists(t *testing.T) {
@@ -225,7 +225,7 @@ func Test_incr_createsKeyIfNotExists(t *testing.T) {
 		t.Error("Set Storage Key 'Tira' does not exist")
 		return
 	}
-	assert.Equal(t, value, "1")
+	assert.Equal(t, "1", value)
 }
 
 func Test_del(t *testing.T) {
@@ -640,7 +640,7 @@ func Test_hdel(t *testing.T) {
 		t.Error("HSet Storage did get key 'void' deleted but wasn't supposed to")
 		return
 	}
-	assert.Equal(t, value, "scary")
+	assert.Equal(t, "scary", value)
 }
 
 func Test_hdel_lastKeyDeletesHash(t *testing.T) {
@@ -750,7 +750,7 @@ func Test_hdel_deleteMultipleFields(t *testing.T) {
 		t.Error("HSet Storage did get key 'isSpider' deleted but wasn't supposed to")
 		return
 	}
-	assert.Equal(t, value, "true")
+	assert.Equal(t, "true", value)
 }
 
 func Test_hdel_needsAtLeastTwoArgs(t *testing.T) {
@@ -1135,7 +1135,7 @@ func Test_command_returnsSpecs(t *testing.T) {
 	result := commandSpecs(request(COMMAND, []resp.Value{}), defaultDb())
 
 	// then
-	assert.ElementsMatch(t, result.Array, expected)
+	assert.ElementsMatch(t, expected, result.Array)
 }
 
 func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
@@ -1191,7 +1191,7 @@ func Test_command_withFilter_caseInsensitive_returnsSpecOfFilter(t *testing.T) {
 	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
-	assert.ElementsMatch(t, result.Array, expected)
+	assert.ElementsMatch(t, expected, result.Array)
 }
 
 func Test_commandDocs_returnsDocs(t *testing.T) {
@@ -1433,7 +1433,7 @@ func Test_commandDocs_returnsDocs(t *testing.T) {
 	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
-	assert.Equal(t, result.Array, expected)
+	assert.Equal(t, expected, result.Array)
 }
 
 func Test_commandDocs_withFilter_caseInsensitive_returnsDocsOfFilter(t *testing.T) {
@@ -1482,7 +1482,7 @@ func Test_commandDocs_withFilter_caseInsensitive_returnsDocsOfFilter(t *testing.
 	result := commandSpecs(request(COMMAND, args), defaultDb())
 
 	// then
-	assert.Equal(t, result.Array, expected)
+	assert.Equal(t, expected, result.Array)
 }
 
 func request(command string, args []resp.Value) resp.Value {
