@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gocache/internal/core/resp"
 	"net"
 	"os"
 	"testing"
@@ -124,6 +125,7 @@ func Test_setAndGet(t *testing.T) {
 	}
 }
 
+// TODO enable test when startup use case exists
 // func Test_getWithInitialization(t *testing.T) {
 // 	// PREPARATIONS
 // 	port := "8103"
@@ -139,7 +141,7 @@ func Test_setAndGet(t *testing.T) {
 // 		Array: []resp.Value{
 // 			{
 // 				Typ:  resp.BULK.Typ,
-// 				Bulk: command.SET,
+// 				Bulk: "SET",
 // 			},
 // 			{
 // 				Typ:  resp.BULK.Typ,
