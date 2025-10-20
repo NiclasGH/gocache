@@ -15,7 +15,6 @@ type hsetStorage struct {
 	mutex sync.RWMutex
 }
 
-// TODO transactions for disk persistence rollback
 type DatabaseImpl struct {
 	setStorage  setStorage
 	hsetStorage hsetStorage
@@ -42,12 +41,15 @@ func (db *DatabaseImpl) EnablePersistence(diskPersistence DiskPersistence) {
 
 func (db *DatabaseImpl) SaveSet(requestValue resp.Value, key string, value string) error {
 	db.setStorage.mutex.Lock()
-	db.setStorage.store[key] = value
-	db.setStorage.mutex.Unlock()
+	defer db.setStorage.mutex.Unlock()
 
 	if db.diskPersistence != nil {
-		return db.diskPersistence.Save(requestValue)
+		if err := db.diskPersistence.Save(requestValue); err != nil {
+			return err
+		}
 	}
+
+	db.setStorage.store[key] = value
 
 	return nil
 }
@@ -64,9 +66,15 @@ func (db *DatabaseImpl) GetSet(key string) (string, error) {
 	return value, nil
 }
 
-func (db *DatabaseImpl) DeleteAllSet(requestValue resp.Value, keys []string) int {
+func (db *DatabaseImpl) DeleteAllSet(requestValue resp.Value, keys []string) (int, error) {
 	db.setStorage.mutex.Lock()
 	defer db.setStorage.mutex.Unlock()
+
+	if db.diskPersistence != nil {
+		if err := db.diskPersistence.Save(requestValue); err != nil {
+			return 0, err
+		}
+	}
 
 	amountDeleted := 0
 	for _, key := range keys {
@@ -76,35 +84,40 @@ func (db *DatabaseImpl) DeleteAllSet(requestValue resp.Value, keys []string) int
 		}
 	}
 
-	if db.diskPersistence != nil {
-		db.diskPersistence.Save(requestValue)
-	}
-
-	return amountDeleted
+	return amountDeleted, nil
 }
 
 func (db *DatabaseImpl) SaveHSet(requestValue resp.Value, hash string, key string, value string) error {
 	db.hsetStorage.mutex.Lock()
+	defer db.hsetStorage.mutex.Unlock()
+
+	if db.diskPersistence != nil {
+		if err := db.diskPersistence.Save(requestValue); err != nil {
+			return err
+		}
+	}
+
 	if _, ok := db.hsetStorage.store[hash]; !ok {
 		db.hsetStorage.store[hash] = map[string]string{}
 	}
 	db.hsetStorage.store[hash][key] = value
-	db.hsetStorage.mutex.Unlock()
-
-	if db.diskPersistence != nil {
-		return db.diskPersistence.Save(requestValue)
-	}
 
 	return nil
 }
 
-func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys []string) int {
+func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys []string) (int, error) {
 	db.hsetStorage.mutex.Lock()
 	defer db.hsetStorage.mutex.Unlock()
 
+	if db.diskPersistence != nil {
+		if err := db.diskPersistence.Save(requestValue); err != nil {
+			return 0, err
+		}
+	}
+
 	hashMap, ok := db.hsetStorage.store[hash]
 	if !ok {
-		return 0
+		return 0, nil
 	}
 
 	amountDeleted := 0
@@ -119,11 +132,7 @@ func (db *DatabaseImpl) DeleteAllHSet(requestValue resp.Value, hash string, keys
 		delete(db.hsetStorage.store, hash)
 	}
 
-	if db.diskPersistence != nil {
-		db.diskPersistence.Save(requestValue)
-	}
-
-	return amountDeleted
+	return amountDeleted, nil
 }
 
 func (db *DatabaseImpl) GetHSet(hash string) (map[string]string, error) {

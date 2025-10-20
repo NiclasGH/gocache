@@ -142,14 +142,14 @@ func (db testDatabase) SaveSet(value resp.Value, _ string, _ string) error {
 	return nil
 }
 
-func (db testDatabase) DeleteAllSet(value resp.Value, _ []string) int {
+func (db testDatabase) DeleteAllSet(value resp.Value, _ []string) (int, error) {
 	db.executedCommands = append(db.executedCommands, value)
-	return 1
+	return 1, nil
 }
 
-func (db testDatabase) DeleteAllHSet(value resp.Value, _ string, _ []string) int {
+func (db testDatabase) DeleteAllHSet(value resp.Value, _ string, _ []string) (int, error) {
 	db.executedCommands = append(db.executedCommands, value)
-	return 1
+	return 1, nil
 }
 
 func (db testDatabase) GetSet(string) (string, error) {

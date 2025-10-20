@@ -90,7 +90,10 @@ func delStrategy(request resp.Value, db persistence.Database) resp.Value {
 		keys = append(keys, key.Bulk)
 	}
 
-	amountDeleted := db.DeleteAllSet(request, keys)
+	amountDeleted, err := db.DeleteAllSet(request, keys)
+	if err != nil {
+		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
+	}
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
@@ -202,7 +205,10 @@ func hdelStrategy(request resp.Value, db persistence.Database) resp.Value {
 		keys = append(keys, key.Bulk)
 	}
 
-	amountDeleted := db.DeleteAllHSet(request, hashKey, keys)
+	amountDeleted, err := db.DeleteAllHSet(request, hashKey, keys)
+	if err != nil {
+		return resp.Value{Typ: resp.ERROR.Typ, Str: err.Error()}
+	}
 
 	return resp.Value{Typ: resp.INTEGER.Typ, Num: amountDeleted}
 }
