@@ -44,4 +44,4 @@ gocache/
 
 ### Rough Micro-Architecture
 Rough capablities map
-![](.github/capablities.png)
+![](.github/capabilities.png)
