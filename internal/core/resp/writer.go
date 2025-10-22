@@ -2,7 +2,6 @@ package resp
 
 import (
 	"io"
-	"log"
 )
 
 type Writer struct {
@@ -15,7 +14,6 @@ func NewWriter(w io.Writer) *Writer {
 
 func (w *Writer) Write(v Value) error {
 	var bytes = v.Marshal()
-	log.Printf("Responding with: %#v \n", string(bytes[:]))
 
 	_, err := w.writer.Write(bytes)
 	if err != nil {

@@ -47,6 +47,11 @@ func HandleConnection(connection net.Conn, database persistence.Database) error 
 
 		result := command(value, database)
 
+		if result.Typ == resp.ERROR.Typ {
+			log.Printf("ERROR: Responding with: %#v \n", result.Str)
+		} else {
+			log.Printf("Responding with: %#v %v%v\n", result.Typ, result.Str, result.Bulk)
+		}
 		writer.Write(result)
 	}
 }
